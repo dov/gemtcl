@@ -1,0 +1,5 @@
+Import('env')
+
+env.Library("plis",
+            ["plis.cc"])
+

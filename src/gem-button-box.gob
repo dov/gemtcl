@@ -1,0 +1,963 @@
+requires 2.0.0
+
+%headertop{
+#include <math.h>
+#include <gtk/gtk.h>
+#include "xnm.h"
+#include "gem.h"
+%}
+
+%header{
+enum visibility_t {
+    VISIBILITY_SHOW,
+    VISIBILITY_HIDE,
+    VISIBILITY_SENSITIVE,
+    VISIBILITY_INSENSITIVE
+};
+        
+%}
+
+%privateheader{
+#include <glade/glade-parser.h>
+#include <glade/glade-xml.h>
+%}
+
+%{
+#include "plis.h"
+#include "gem-button-box-editor.h"
+#include "gem-button-box-button-bless.h"    
+#include <glade/glade-parser.h>
+#include <glade/glade.h>
+
+#define DO_HOMOGENOUS TRUE
+#define DO_NOT_HOMOGENOUS FALSE
+#define DO_EXPAND TRUE
+#define DO_NOT_EXPAND FALSE
+#define DO_FILL TRUE
+#define DO_NOT_FILL FALSE
+
+/* Define some macros defining all space distance used in programs */
+#define SPACE_ZERO 0
+#define PADDING_ZERO 0
+
+static void cb_toolbutton_new(GtkWidget *button,
+                              gpointer userdata);
+static void cb_toolbutton_exec(GtkWidget *button,
+                               gpointer userdata);
+static void cb_toolbutton_edit(GtkWidget *button,
+                               gpointer userdata);
+static gchar *get_top_child_name(GladeInterface *gif);
+static GPtrArray *get_all_widgets(GladeInterface *gif);
+static void recursive_get_widgets(GladeWidgetInfo *gwi,
+                                  const gchar *match_classname,
+                                  const gchar *widget_name,
+                                  GPtrArray *button_array);
+static void init_glade_widgets(GladeXML *xml,
+                               XnmValue *val);
+
+static bool is_input_widget(GladeWidgetInfo *cgwi);
+static bool is_button_but_not_check_button(GladeWidgetInfo *cgwi);
+typedef bool (*WidgetFilter)(GladeWidgetInfo *cgwi);
+static int
+cb_button_press_event(GtkWidget *button,
+                      GdkEventButton *event);
+void cb_entry_popup_populate (GtkEntry *entry,
+                              GtkMenu  *arg1,
+                              gpointer  user_data);
+using namespace plis;
+
+%}
+
+class Gem:Button:Box from Gtk:VBox
+{
+    public gchar *filename = NULL;
+    public gchar *name;
+    public int num_columns;
+    public int num_rows;
+    public int padding;
+    private GtkWidget *w_table;
+    private GtkWidget *w_toolbar;
+    private GtkWidget *w_notebook;  // show either internal or glade buttons
+    private GtkWidget *w_glade_widget = NULL;
+    private GemCmdEval *cmd_eval;
+    private GPtrArray *button_list;
+    private GPtrArray *glade_widget_list;
+    private gchar *glade_filename = NULL;
+    private gboolean use_glade;
+    private GladeInterface *gif;
+    private GladeXML *xml= NULL;
+    
+    public GtkWidget *
+    new (GemCmdEval *cmd_eval)
+    {
+        GtkWidget *widget =  (GtkWidget *)GET_NEW;
+        GemButtonBox *self = GEM_BUTTON_BOX(widget);
+        GtkToolItem *w_toolbutton;
+
+        gtk_box_set_homogeneous(GTK_BOX(widget), FALSE);
+
+        self->name = g_strdup("ButtonBox");
+        self->num_columns = 5;
+        self->num_rows = 1;
+        self->padding = 2;
+        self->filename = NULL;
+        selfp->w_notebook = gtk_notebook_new();
+        gtk_notebook_set_show_tabs(GTK_NOTEBOOK(selfp->w_notebook),
+                                   FALSE);
+        selfp->w_table = gtk_table_new(GEM_BUTTON_BOX(widget)->num_rows, GEM_BUTTON_BOX(widget)->num_columns, FALSE);
+        selfp->cmd_eval = cmd_eval;
+        selfp->button_list = g_ptr_array_new();
+        selfp->glade_widget_list = g_ptr_array_new();
+
+        selfp->w_toolbar = gtk_toolbar_new();
+        
+        w_toolbutton = gtk_tool_button_new_from_stock("gtk-execute");
+        gtk_toolbar_insert(GTK_TOOLBAR(selfp->w_toolbar),
+                           w_toolbutton,
+                           -1);
+        g_signal_connect(G_OBJECT(w_toolbutton), "clicked",
+                         G_CALLBACK(cb_toolbutton_exec), widget);
+
+        w_toolbutton = gtk_tool_button_new_from_stock("gtk-new");
+        gtk_toolbar_insert(GTK_TOOLBAR(selfp->w_toolbar),
+                           w_toolbutton,
+                           -1);
+        g_signal_connect(G_OBJECT(w_toolbutton), "clicked",
+                         G_CALLBACK(cb_toolbutton_new), widget);
+
+
+        w_toolbutton = gtk_tool_button_new_from_stock("gtk-edit");
+        gtk_toolbar_insert(GTK_TOOLBAR(selfp->w_toolbar),
+                           w_toolbutton,
+                           -1);
+        g_signal_connect(G_OBJECT(w_toolbutton), "clicked",
+                         G_CALLBACK(cb_toolbutton_edit), widget);
+
+        gtk_widget_show_all(GTK_WIDGET(selfp->w_toolbar));
+
+        gtk_box_pack_start(GTK_BOX(widget),
+                           selfp->w_toolbar,
+                           FALSE, FALSE, 0);
+
+        gtk_box_pack_start(GTK_BOX(widget),
+                           selfp->w_notebook,
+                           TRUE, TRUE, 0);
+        gtk_widget_show(selfp->w_notebook);
+
+        gtk_notebook_append_page(GTK_NOTEBOOK(selfp->w_notebook),
+                                 selfp->w_table,
+                                 NULL);
+
+        gtk_widget_show(selfp->w_table);
+
+        return widget;
+    }
+
+    public GtkWidget *new_from_file(const char *filename,
+                                    GemCmdEval *cmd_eval)
+    {
+        gchar *xnm_string;
+        gsize length;
+        GError *error = NULL;
+        
+        if (!g_file_get_contents(filename,
+                                 &xnm_string,
+                                 &length,
+                                 &error)) {
+            printf("Error: %s\n", error->message);
+            g_error_free(error);
+            return NULL;
+        }
+
+        GemButtonBox *self = GEM_BUTTON_BOX(gem_button_box_new_from_string(filename,
+                                                                           xnm_string,
+                                                                           cmd_eval));
+        g_free(xnm_string);
+        return GTK_WIDGET(self);
+    }
+    
+                                                                                  public GtkWidget *new_from_string(const char *filename,
+                                                                                                                    const char *xnm_string,
+                                                                                                                    GemCmdEval *cmd_eval)
+    {
+        GemButtonBox *self = GEM_BUTTON_BOX(gem_button_box_new(cmd_eval));
+        GError *error = NULL;
+        int ret;
+        XnmValue *val;
+        
+        if (self->filename)
+            g_free(self->filename);
+        self->filename = g_strdup(filename);
+
+        ret = xnm_parse_string(xnm_string,
+                               // output
+                               &val,
+                               &error);
+        if (error) {
+            printf("Error: %s\n", error->message);
+            g_error_free(error);
+            gtk_widget_destroy(GTK_WIDGET(self));
+            return NULL;
+        }
+        int num_buttons =  xnm_value_get_array_length (val,
+                                                       "buttons");
+        gchar *name;
+
+        if (xnm_value_get_string(val, "name", &name) == 0) {
+            g_free(self->name);
+            self->name = name;
+        }
+
+        for (int i=0; i<num_buttons; i++) {
+            gchar *label = NULL, *script = NULL;
+            slip key = slipprintf("buttons:[%d]:", i);
+            xnm_value_get_string(val, key + "label", &label);
+            xnm_value_get_string(val, key + "script", &script);
+
+            gem_button_box_add_button(self, label, script);
+            g_free(label);
+            g_free(script);
+        }
+        xnm_value_get_bool(val, "use_glade", &selfp->use_glade);
+        xnm_value_get_string(val, "glade_filename", &selfp->glade_filename);
+
+        if (selfp->use_glade)
+            gem_button_box_set_glade_file(self,
+                                          selfp->glade_filename);
+        else
+            gem_button_box_set_glade_file(self, NULL);
+
+        init_glade_widgets(selfp->xml,
+                           val);
+        
+        return GTK_WIDGET(self);
+    }
+
+    public int save_to_file(self,
+                            const gchar *filename)
+    {
+        const gchar *save_filename = filename;
+        // If NULL, then use the old filename
+        if (!save_filename)
+            save_filename = self->filename;
+
+        FILE *GTF = fopen(save_filename, "wb");
+        if (!GTF)
+            return -1;
+
+        gchar *xnm_string = gem_button_box_save_to_string(self);
+        fprintf(GTF, "%s", xnm_string);
+        fclose(GTF);
+        g_free(xnm_string);
+        
+        if (filename) {
+            if (self->filename)
+                g_free(self->filename);
+            self->filename = g_strdup(save_filename);
+        }
+        return 0;
+    }
+    
+    public gchar *save_to_string(self)
+    {
+        slip xnm_string = "";
+        xnm_string += slipprintf("name => \"%s\"\n"
+                                 "use_glade => %d\n",
+                                 self->name,
+                                 selfp->use_glade);
+        if (selfp->glade_filename) {
+            slip fn = selfp->glade_filename;
+            fn.s("\\\\", "\\\\","g");
+            fn.s("\"", "\\\"","g");
+            
+            xnm_string += slipprintf("glade_filename => \"%s\"\n", fn.c_str());
+        }
+        xnm_string += "buttons=> [\n";
+        for (int i=0; i<(int)selfp->button_list->len; i++) {
+            GtkButton *bbb = GTK_BUTTON(g_ptr_array_index(selfp->button_list, i));
+            slip script = gem_button_box_button_bless_get_script(bbb);
+            script.s("\\\\", "\\\\","g");
+            script.s("\"", "\\\"","g");
+            
+            xnm_string += slipprintf(
+                    "  {\n"
+                    "    label => \"%s\"\n"
+                    "    script => \"%s\"\n"
+                    "  }\n",
+                    gem_button_box_button_bless_get_label(bbb),
+                    script.c_str());
+        }
+        xnm_string += "]\n";
+
+        xnm_string += "glade_scripts => [\n";
+        for (int i=0; i<(int)selfp->glade_widget_list->len; i++) {
+            const gchar *name = (gchar*)g_ptr_array_index(selfp->glade_widget_list, i);
+            GtkWidget *widget = glade_xml_get_widget(selfp->xml, name);
+            if (!GTK_IS_BUTTON(widget))
+                continue;
+            if (GTK_IS_TOGGLE_BUTTON(widget))
+                continue;
+
+            slip script = gem_button_box_button_bless_get_script(GTK_BUTTON(widget));
+            script.s("\\\\", "\\\\","g");
+            script.s("\"", "\\\"","g");
+
+            xnm_string += slipprintf(
+                    "  {\n"
+                    "    name => \"%s\"\n"
+                    "    script => \"%s\"\n"
+                    "  }\n",
+                    name,
+                    script.c_str());
+        }
+        xnm_string += "]\n";
+
+        xnm_string += "glade_inputs => [\n";
+        for (int i=0; i<(int)selfp->glade_widget_list->len; i++) {
+            const gchar *name = (gchar*)g_ptr_array_index(selfp->glade_widget_list, i);
+            GtkWidget *widget = glade_xml_get_widget(selfp->xml, name);
+
+            slip value;
+            if (GTK_IS_ENTRY(widget)) {
+                value = gtk_entry_get_text(GTK_ENTRY(widget));
+                value.s("\\\\", "\\\\","g");
+                value.s("\"", "\\\"","g");
+                value = slip("\"") + value + "\"";
+
+            }
+            else if (GTK_IS_COMBO_BOX(widget)) {
+                value = slipprintf("%d",
+                                   gtk_combo_box_get_active(GTK_COMBO_BOX(widget)));
+
+            }
+            else
+                continue;
+            xnm_string += slipprintf(
+                    "  {\n"
+                    "    name => \"%s\"\n"
+                    "    value => %s\n"
+                    "  }\n"
+                    ,
+                    name,
+                    value.c_str()
+                    );
+            
+        }
+        xnm_string += "]\n";
+
+        return g_strdup(xnm_string.c_str());
+    }
+
+    // filename is used for getting the path
+    public void set_glade_file(self,
+                               const gchar *glade_file)
+    {
+        // Preserve state by serialization... Should be a better way...
+        gchar *self_string = gem_button_box_save_to_string(self);
+
+        // The glade page is always #1. It should already have been destroyed
+        gtk_notebook_remove_page(GTK_NOTEBOOK(selfp->w_notebook), 1);
+        gtk_widget_show(selfp->w_toolbar);
+
+        if (!glade_file)
+            return;
+
+        // Load the glade widget
+        gchar *dirname = NULL;
+        if (self->filename)
+            dirname = g_path_get_dirname(self->filename);
+        
+        slip glade_file_path = glade_file;
+        if (dirname && !glade_file_path.m("/|\\\\"))
+            glade_file_path = slipprintf("%s/%s", dirname, glade_file);
+#if 0
+        printf("dirname glade_file_path = %s %s\n", dirname, glade_file_path.c_str());
+#endif
+        selfp->gif = glade_parser_parse_file(glade_file_path,
+                                             NULL);
+        if (dirname)
+            g_free(dirname);
+        
+        // Ignore failed loading
+        if (!selfp->gif) 
+            return;
+        
+        gchar *top_child_name = get_top_child_name(selfp->gif);
+
+        // TBD : clean memory and improve error handling!
+        if (!top_child_name) 
+            return;
+        selfp->xml = glade_xml_new(glade_file_path.c_str(), top_child_name, NULL);
+        selfp->w_glade_widget = glade_xml_get_widget(selfp->xml, top_child_name);
+
+        gtk_widget_hide(selfp->w_toolbar);
+
+        gtk_notebook_append_page(GTK_NOTEBOOK(selfp->w_notebook),
+                                 selfp->w_glade_widget,
+                                 NULL);
+        gtk_notebook_set_current_page(GTK_NOTEBOOK(selfp->w_notebook),
+                                      1);
+
+        // Extract out all buttons from the glade file and connect
+        // them.
+        selfp->glade_widget_list = get_all_widgets(selfp->gif);
+        
+        for (int i=0; i<(int)selfp->glade_widget_list->len; i++) {
+            const gchar *name = (gchar*)g_ptr_array_index(selfp->glade_widget_list, i);
+            GtkWidget *widget = glade_xml_get_widget(selfp->xml, name);
+
+            if (GTK_IS_BUTTON(widget) 
+                && !GTK_IS_CHECK_BUTTON(widget)
+                && !GTK_IS_TOGGLE_BUTTON(widget)
+                && !GTK_IS_OPTION_MENU(widget)
+                && !GTK_IS_COMBO_BOX(widget)
+                && !GTK_IS_FILE_CHOOSER_BUTTON(widget)) {
+                const gchar *label = gtk_button_get_label(GTK_BUTTON(widget));
+
+                gem_button_box_button_bless(GTK_BUTTON(widget),
+                                            label,
+                                            "puts foo",
+                                            GTK_WIDGET(self),
+                                            selfp->cmd_eval,
+                                            false);
+                if (!label)
+                    label = name;
+                g_object_set_data(G_OBJECT(widget), "id", (gpointer)name);
+                continue;
+            }
+
+            gchar *name_label = g_strdup_printf("Name: %s", name);
+            GtkWidget *menu_item =gtk_menu_item_new_with_label(name_label);
+            g_free(name_label);
+
+            if (GTK_IS_ENTRY(widget)) {
+                g_signal_connect(widget, "populate_popup",
+                                 G_CALLBACK(cb_entry_popup_populate),
+                                 g_strdup(name));
+            }
+            else {
+                GtkWidget *menu = gtk_menu_new();
+                g_object_set_data(G_OBJECT(widget),
+                              "menu",
+                              menu);
+                gtk_menu_shell_append(GTK_MENU_SHELL(menu),
+                                      menu_item);
+    
+                g_signal_connect(widget, "button-press-event",
+                                 G_CALLBACK(cb_button_press_event),
+                                 NULL);
+            }
+
+        }
+
+        // Ugly hack to reinstall scripts and glade inputs! They should be
+        // stored in this objects structure instead!!!
+        XnmValue *val;
+        GError *error = NULL;
+        xnm_parse_string(self_string,
+                         // output
+                         &val,
+                         &error);
+        
+        init_glade_widgets(selfp->xml,
+                           val);
+
+        xnm_value_unref(val);
+
+        g_free(self_string);
+        g_free(top_child_name);
+    }
+
+    public int get_columns(self)
+    {
+        return self->num_columns;
+    }
+
+    public const gchar *get_name(self) {
+        return self->name;
+    }
+ 
+    public void set_use_glade(self,
+                              bool use_glade)
+    {
+        selfp->use_glade = use_glade;
+    }
+
+    public bool get_use_glade(self) {
+        return selfp->use_glade;
+    }
+
+    public void set_glade_filename(self, const char *glade_file) {
+        if (selfp->glade_filename) {
+            g_free(selfp->glade_filename);
+            selfp->glade_filename = NULL;
+        }
+        selfp->glade_filename = g_strdup(glade_file);
+    }
+
+    public const char *get_glade_filename(self) {
+        return selfp->glade_filename;
+    }
+
+    public GtkWidget *add_button(self,
+                                 const gchar *label_text,
+                                 const gchar *script
+                                 )
+    {
+        GtkWidget *bbb;
+        if (label_text == NULL)
+            label_text = g_strdup("New");
+        if (script == NULL)
+            script = g_strdup("puts New");
+
+        bbb = gtk_button_new_with_label(label_text);
+        gem_button_box_button_bless(GTK_BUTTON(bbb),
+                                    label_text,
+                                    script,
+                                    (GtkWidget*)self,
+                                    selfp->cmd_eval,
+                                    true
+                                    );
+        // Add a reference so that we can reorder
+        g_object_ref(G_OBJECT(bbb));
+        
+        int b_idx = selfp->button_list->len;
+        int row_idx = b_idx / self->num_columns;
+        int col_idx = b_idx % self->num_columns;
+        g_object_set(G_OBJECT(selfp->w_table),
+                     "n-rows", row_idx+1,
+                     "homogeneous", FALSE,
+                     NULL);
+        gtk_widget_show(bbb);
+        gtk_table_attach(GTK_TABLE(selfp->w_table),
+                         bbb,
+                         col_idx, col_idx+1,
+                         row_idx, row_idx+1,
+                         GtkAttachOptions(GTK_FILL),
+                         GtkAttachOptions(GTK_FILL),
+                         self->padding,
+                         self->padding);
+
+        g_ptr_array_add(selfp->button_list, (gpointer)bbb);
+
+        return bbb;
+    }
+
+    public void demo(self)
+    {
+        gem_button_box_add_button(self, "foo", "puts foo");
+        gem_button_box_add_button(self, "bar", "puts bar");
+    }
+
+    public GPtrArray *
+    get_button_list(self)
+    {
+        return selfp->button_list;
+    }
+
+    public GtkButton *
+    get_button(self, int button_idx)
+    {
+        return GTK_BUTTON(g_ptr_array_index(selfp->button_list,
+                                            button_idx));
+    }
+
+    public void set_name(self, const char *name)
+    {
+        g_free(self->name);
+        self->name = g_strdup(name);
+        g_signal_emit_by_name(self, "name-changed", name);
+    }
+
+    signal last NONE (STRING)
+    void
+    name_changed (self, const gchar *new_name)
+    {
+    }
+
+    public void 
+    set_button_list(self, GPtrArray *new_list)
+    {
+        while(selfp->button_list->len) {
+            GtkWidget *bbb = GTK_WIDGET(g_ptr_array_index(selfp->button_list, 0));
+            // printf("Removing %x...\n", bbb);
+            gtk_container_remove(GTK_CONTAINER(selfp->w_table), bbb);
+            g_ptr_array_remove_index(selfp->button_list, 0);
+        }
+
+        for (int b_idx=0; b_idx<(int)new_list->len; b_idx++) {
+            GtkWidget *bbb = GTK_WIDGET(g_ptr_array_index(new_list, b_idx));
+            g_ptr_array_add(selfp->button_list, (gpointer)bbb);
+            int row_idx = b_idx / self->num_columns;
+            int col_idx = b_idx % self->num_columns;
+
+            gtk_table_attach(GTK_TABLE(selfp->w_table),
+                             bbb,
+                             col_idx, col_idx+1,
+                             row_idx, row_idx+1,
+                             GtkAttachOptions(GTK_FILL),
+                             GtkAttachOptions(GTK_FILL),
+                             self->padding,
+                             self->padding);
+        }
+    }
+
+    public void
+    delete_button(self, GtkWidget *bbb_to_delete)
+    {
+        GPtrArray *new_button_list = g_ptr_array_new();
+        
+        for (int b_idx=0; b_idx<(int)selfp->button_list->len; b_idx++) {
+            GtkWidget *bbb = GTK_WIDGET(g_ptr_array_index(selfp->button_list, b_idx));
+
+            if (bbb == bbb_to_delete)
+                continue;
+            
+            g_ptr_array_add(new_button_list, (gpointer)bbb);
+        }
+        gem_button_box_set_button_list(self, new_button_list);
+        g_ptr_array_free(new_button_list, TRUE);
+    }
+    
+    public const gchar *get_filename(self) {
+        return self->filename;
+    }
+
+    public gchar *get_widget_val(self,
+                                 const gchar *widget_name)
+    {
+        // Search for gem widgets for the name widget name
+        // and return its value for entry widgets.
+        gchar *widget_text = NULL;
+        GtkWidget *widget = glade_xml_get_widget(selfp->xml, widget_name);
+
+        if (widget) {
+            if (GTK_IS_ENTRY(widget))
+                widget_text = g_strdup(gtk_entry_get_text(GTK_ENTRY(widget)));
+            else if  (GTK_IS_COMBO_BOX(widget))
+                widget_text = gtk_combo_box_get_active_text(GTK_COMBO_BOX(widget));
+            else if (GTK_IS_TOGGLE_BUTTON(widget)) 
+                widget_text =  g_strdup_printf("%d", gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+            else if (GTK_IS_FILE_CHOOSER_BUTTON(widget))
+                widget_text = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(widget));
+        }
+
+        return widget_text;
+    }
+
+    public gchar *set_widget_val(self,
+                                 const gchar *widget_name,
+                                 const gchar *value)
+    {
+        // Search for gem widgets for the name widget name
+        // and return its value for entry widgets.
+        gchar *widget_text = NULL;
+        GtkWidget *widget = glade_xml_get_widget(selfp->xml, widget_name);
+
+        if (widget) {
+            if (GTK_IS_ENTRY(widget))
+                gtk_entry_set_text(GTK_ENTRY(widget),
+                                   value);
+            else if  (GTK_IS_LABEL(widget))
+                gtk_label_set_text(GTK_LABEL(widget),
+                                   value);
+            else if (GTK_IS_TOGGLE_BUTTON(widget))
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), atoi(value));
+            else if (GTK_IS_IMAGE(widget))
+                gtk_image_set_from_file(GTK_IMAGE(widget),
+                                        value);
+            else if (GTK_IS_FILE_CHOOSER_BUTTON(widget))
+                gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(widget), value);
+            else if  (GTK_IS_COMBO_BOX(widget)) {
+                GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
+                GtkTreeIter iter;
+                gtk_tree_model_get_iter_first(model,
+                                              &iter);
+                while(1) {
+                    GValue gvalue;
+                    memset(&gvalue, 0, sizeof(gvalue));
+                    gtk_tree_model_get_value(model, &iter, 0, &gvalue);
+                    gchar *_it_value = g_strdup_value_contents (&gvalue);
+                    g_value_unset(&gvalue);
+                    slip it_value(_it_value);
+                    g_free(_it_value);
+                    it_value.s("\\\"","","g");
+                    if (slip(value) == it_value) {
+                        gtk_combo_box_set_active_iter(GTK_COMBO_BOX(widget),
+                                                      &iter);
+                        break;
+                    }
+                    if (!gtk_tree_model_iter_next(model, &iter))
+                        break;
+                }
+                                                          
+            }
+        }
+
+        return widget_text;
+    }
+
+    public int set_widget_visibility(self,
+                                     const gchar *widget_name,
+                                     visibility_t visibility)
+    {
+        // Search for gem widgets for the name widget name
+        // and return its value for entry widgets.
+        gchar *widget_text = NULL;
+        GtkWidget *widget = glade_xml_get_widget(selfp->xml, widget_name);
+
+        if (widget) {
+            if (visibility == VISIBILITY_SHOW) {
+                gtk_widget_show(widget);
+            }
+            else if (visibility == VISIBILITY_HIDE) {
+                gtk_widget_hide(widget);
+            }
+            else 
+                gtk_widget_set_sensitive(widget,
+                                         visibility == VISIBILITY_SENSITIVE);
+            return 1;
+        }
+        return 0;
+    }
+}
+
+%{
+static void cb_toolbutton_new(GtkWidget *button,
+                              gpointer userdata)
+{
+    GemButtonBox *self = GEM_BUTTON_BOX(userdata);
+    gem_button_box_add_button(self, NULL, NULL);
+}
+
+static void cb_toolbutton_edit(GtkWidget *button,
+                               gpointer userdata)
+{
+    GemButtonBox *bb = GEM_BUTTON_BOX(userdata);
+    GtkWidget *dialog = gem_button_box_editor_new(bb);
+
+    gtk_widget_show_all(dialog);
+}
+
+/**
+ * This function concatinates all the scripts together to one long string
+ * that it then evaluates. This works much better than evaluating one
+ * string at a time, because of raise conditions in gemtcl. Even if
+ * these problems are solved (which they should be) this approach is
+ * correct.
+ */
+static void cb_toolbutton_exec(GtkWidget *button,
+                               gpointer user_data)
+{
+    GString *all_cmds = g_string_new("");
+    GemButtonBox *self = GEM_BUTTON_BOX(user_data);
+    for (int i=0; i<(int)selfp->button_list->len; i++) {
+        GtkButton *bbb = GTK_BUTTON(g_ptr_array_index(selfp->button_list, i));
+        g_string_append(all_cmds, gem_button_box_button_bless_get_script(bbb));
+        g_string_append(all_cmds, "\n");
+    }
+    selfp->cmd_eval(all_cmds->str);
+    g_string_free(all_cmds, TRUE);
+}
+
+#if 0
+static void
+cb_glade_button_press(GtkWidget *widget,
+                      GdkEventButton *event,
+                      gpointer user_data)
+{
+    gchar *name = (gchar*)(g_object_get_data(G_OBJECT(widget), "id"));
+
+    printf("Glade button %s pressed\n", name);
+}
+#endif
+
+static gchar *get_top_child_name(GladeInterface *gif)
+{
+    if (gif->n_toplevels != 1)
+        return NULL;
+
+    GladeWidgetInfo *gwi = gif->toplevels[0];
+
+    if (gwi->n_children != 1)
+        return NULL;
+
+    gchar *name = g_strdup(gwi->children[0].child->name);
+
+    return name;
+}
+
+static void recursive_get_widgets(GladeWidgetInfo *gwi,
+                                  const gchar *match_classname,
+                                  const gchar *widget_name,
+                                  GPtrArray *button_array)
+{
+    int c_idx;
+    for (c_idx=0; c_idx<(int)gwi->n_children; c_idx++) {
+        GladeWidgetInfo *cgwi = gwi->children[c_idx].child;
+        if ((match_classname == NULL
+             || g_strrstr(match_classname, cgwi->classname))
+            && (widget_name == NULL
+                || strcmp(cgwi->name, widget_name) == 0)
+            )
+            g_ptr_array_add(button_array,
+                            g_strdup(cgwi->name));
+
+        recursive_get_widgets(cgwi,
+                              match_classname,
+                              widget_name,
+                              button_array);
+    }
+}
+
+static void recursive_get_widgets(GladeWidgetInfo *gwi,
+                                  WidgetFilter filter,
+                                  GPtrArray *grep_array)
+{
+    int c_idx;
+    for (c_idx=0; c_idx<(int)gwi->n_children; c_idx++) {
+        GladeWidgetInfo *cgwi = gwi->children[c_idx].child;
+        if ((*filter)(cgwi))
+            g_ptr_array_add(grep_array,
+                            g_strdup(cgwi->name));
+
+        recursive_get_widgets(cgwi,
+                              filter,
+                              grep_array);
+    }
+}
+
+#if 0
+GPtrArray *get_buttons(GladeInterface *gif)
+{
+    GPtrArray *button_array = g_ptr_array_new();
+
+    recursive_get_widgets(gif->toplevels[0],
+                          &is_button_but_not_check_button,
+                          button_array);
+
+    return button_array;
+}
+#endif
+
+GPtrArray *get_entries(GladeInterface *gif)
+{
+    GPtrArray *entry_array = g_ptr_array_new();
+
+    recursive_get_widgets(gif->toplevels[0],
+                          is_input_widget,
+                          entry_array);
+
+    return entry_array;
+}
+
+
+GPtrArray *get_widgets_grep(GladeInterface *gif,
+                            WidgetFilter filter)
+{
+    GPtrArray *widget_array = g_ptr_array_new();
+
+    recursive_get_widgets(gif->toplevels[0],
+                          filter,
+                          widget_array);
+
+    return widget_array;
+}
+
+GPtrArray *get_all_widgets(GladeInterface *gif)
+{
+    GPtrArray *widget_array = g_ptr_array_new();
+
+    recursive_get_widgets(gif->toplevels[0],
+                          NULL, NULL,
+                          widget_array);
+
+    return widget_array;
+}       
+
+static void
+init_glade_widgets(GladeXML *xml,
+                   XnmValue *val)
+{
+    
+    // Now get the glade scripts
+    for (int i=0; i<xnm_value_get_array_length(val, "glade_scripts"); i++) {
+        gchar *name = NULL, *script = NULL;
+        slip key = slipprintf("glade_scripts:[%d]:", i);
+        xnm_value_get_string(val, key + "name", &name);
+        xnm_value_get_string(val, key + "script", &script);
+        GtkWidget *widget = glade_xml_get_widget(xml, name);
+        if (widget)
+            gem_button_box_button_bless_set_script(GTK_BUTTON(widget), script);
+        g_free(name);
+        g_free(script);
+    }
+    
+    // Entry values
+    for (int i=0; i<xnm_value_get_array_length(val, "glade_inputs"); i++) {
+        gchar *name = NULL, *value = NULL;
+        slip key = slipprintf("glade_inputs:[%d]:", i);
+        xnm_value_get_string(val, key + "name", &name);
+        xnm_value_get_string(val, key + "value", &value);
+        
+        GtkWidget *widget = glade_xml_get_widget(xml, name);
+        
+        if (widget) {
+            if (GTK_IS_ENTRY(widget))
+                gtk_entry_set_text(GTK_ENTRY(widget), value);
+            else if (GTK_IS_COMBO_BOX(widget))
+                gtk_combo_box_set_active(GTK_COMBO_BOX(widget),
+                                         atoi(value));
+        }
+        
+        g_free(name);
+        g_free(value);
+    }
+}
+
+static bool is_input_widget(GladeWidgetInfo *cgwi)
+{
+    return strcmp(cgwi->name, "GtkEntry")==0
+        || strcmp(cgwi->name, "GtkSpinButton")==0
+        || strcmp(cgwi->name, "GtkOptionMenu")==0
+        || strcmp(cgwi->name, "GtkComboBox")==0
+        || strcmp(cgwi->name, "GtkToggleButton")==0;
+}
+
+// Why isn't this called forc the gtkfilebutton and the
+// combobox buttons???
+static
+int cb_button_press_event (GtkWidget *widget,
+                           GdkEventButton *event)
+{
+    GtkWidget *menu = (GtkWidget*)g_object_get_data(G_OBJECT(widget),
+                                                    "menu");
+
+    if (event->button == 3) {
+        gtk_widget_grab_focus(widget);
+        gtk_widget_show_all(menu);
+        gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL,
+                       event->button, event->time);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+// This callback is used to add user widgets to the entry popup menu.
+void cb_entry_popup_populate (GtkEntry *entry,
+                              GtkMenu  *menu,
+                              gpointer  label)
+{
+    gchar *name_label = g_strdup_printf("Name: %s", (gchar*)label);
+    GtkWidget *menu_item =gtk_menu_item_new_with_label(name_label);
+    GtkWidget *menu_sep = gtk_menu_item_new();
+    gtk_container_add(GTK_CONTAINER(menu_sep), gtk_hseparator_new());
+    gtk_menu_shell_prepend(GTK_MENU_SHELL(menu),
+                           menu_sep);
+    gtk_menu_shell_prepend(GTK_MENU_SHELL(menu),
+                           menu_item);
+    gtk_widget_show_all(GTK_WIDGET(menu));
+}
+
+%}

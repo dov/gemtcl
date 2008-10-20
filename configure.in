@@ -1,0 +1,53 @@
+AC_INIT(src/gemtcl.cc)
+
+AM_CONFIG_HEADER(config.h)
+
+PACKAGE=gemtcl
+
+AM_INIT_AUTOMAKE($PACKAGE,"0.1.26")
+
+dnl Use libtool to get shared libraries
+AC_PROG_CC
+AC_PROG_YACC
+AC_DISABLE_STATIC
+AC_PROG_LIBTOOL
+
+dnl dito install
+AC_PROG_INSTALL
+AM_MAINTAINER_MODE
+
+
+dnl Check for GTK+
+dnl ==============
+GTK_PACKAGES="gtk+-2.0"
+GTK_REQUIRED_VERSION=2.0.0
+
+AM_PATH_GTK_2_0($GTK_REQUIRED_VERSION, :,
+  AC_MSG_ERROR([
+*** GTK $GTK_REQUIRED_VERSION or better is required. The latest version of 
+*** GTK is always available from ftp://ftp.gtk.org/.]),
+  gtk+)
+
+GEMTCL_PACKAGES="gtk+-2.0 gobject-2.0 gmodule-2.0 libglade-2.0 gnet-2.0 gtksourceview-2.0"
+PACKAGE_LIBS="`$PKG_CONFIG --libs $GEMTCL_PACKAGES ` `pcre-config --libs` -ltcl
+PACKAGE_CFLAGS="`$PKG_CONFIG --cflags $GEMTCL_PACKAGES` `pcre-config --cflags`
+
+AC_SUBST(GEMTCL_PACKAGES)
+AC_SUBST(PACKAGE_LIBS)
+AC_SUBST(PACKAGE_CFLAGS)
+
+##################################################
+# Checks for gtk-doc and docbook-tools
+##################################################
+
+AC_CHECK_PROG(DB2HTML, db2html, true, false)
+AM_CONDITIONAL(HAVE_DOCBOOK, $DB2HTML)
+
+dnl Define the files to be built by the configure script
+dnl
+AC_OUTPUT([
+Makefile
+src/Makefile
+src/xnm/Makefile
+src/plis/Makefile
+])

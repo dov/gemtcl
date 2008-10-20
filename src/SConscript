@@ -1,0 +1,73 @@
+import re
+Import('env')
+
+def file_to_string(env, target, source):
+    out = open(str(target[0]), "wb")
+    inp = open(str(source[0]), "r")
+
+    for line in inp.readlines():
+        line = line.rstrip('\r\n')
+        line = re.sub('\\"','\\"',line)
+        out.write('"' + line + "\\n\"\n")
+        
+    out.close()
+    inp.close()
+
+src = ["gemtcl.cc",
+       "gem-button-box.cc",
+       "gem-button-box-editor.cc",
+       "gem-button-box-button-bless.cc",
+       "gem-button-box-button-bless-editor.cc",
+       "xmlrpc-server.c",
+       ]
+
+if ARGUMENTS.get('mingw', 0):
+    src = src + ["../gemtcl.res.o"]
+    env['LIBS'] = env['LIBS']
+else:
+    env.Append(CPPFLAGS=["-g","-Wall"])
+
+SConscript(['xnm/SConscript',
+            'plis/SConscript'
+            ],
+           exports='env')
+
+env.Command("logo_150_inline.i",
+            "../misc/gemtcl-logo-150.png",
+            "gdk-pixbuf-csource --name=logo_150_inline $SOURCES > $TARGET")
+env.Command("logo_64_inline.i",
+            "../misc/gemtcl-logo-64.png",
+            "gdk-pixbuf-csource --name=logo_64_inline $SOURCES > $TARGET")
+
+env.Program("gemtcl",
+            src,
+            LINKFLAGS=['-mwindows'] + env['LINKFLAGS'],
+            LIBPATH=['xnm','plis'] + env['LIBPATH'],
+            LIBS=['xnm','plis'] + env['LIBS'],
+            CPPPATH = ['xnm','plis'] + env['CPPPATH'])
+
+for gob in ("gem-button-box",
+            "gem-button-box-button-bless-editor",
+            "gem-button-box-editor",
+            ) :
+    env.Command([gob + ".cc",
+                 gob + ".h"
+                 ],
+                [gob + ".gob"],
+                ["gob2 -o ${SOURCES.dir} --for-cpp $SOURCES"]
+                )
+
+env.Command("changelog_string.i",
+            "../ChangeLog",
+            file_to_string)
+
+env_remote = env.Clone()
+env_remote.ParseConfig("${PKGCONFIG} --cflags --libs gnet-2.0")
+
+env_remote.Program("gemtcl-remote",
+                   ["gemtcl-remote.cc",
+                    "xmlrpc-client.c"],
+                   LIBPATH=['xnm','plis'] + env['LIBPATH'],
+                   LIBS=['xnm','plis'] + env['LIBS'],
+                   CPPPATH = ['xnm','plis'] + env['CPPPATH'])
+

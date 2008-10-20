@@ -1,0 +1,550 @@
+// An editor for a gem-buttonboxbutton
+//
+//
+requires 2.0.0
+
+%headertop{
+#include <stdlib.h>
+#include <math.h>
+#include <gtk/gtk.h>
+#include "gem.h"
+#include "gem-button-box.h"
+%}
+
+%privateheader{
+#include "gem-button-box-button-bless.h"
+#include "gem-button-box-button-bless-editor.h"
+%}
+
+%{
+
+enum {
+    COL_LABEL,
+    COL_SCRIPT,
+    COL_BUTTON, // Hidden
+    N_COLUMNS
+};
+
+enum {
+    RESPONSE_EDIT,
+    RESPONSE_EXECUTE,
+    RESPONSE_NEW
+};
+
+void cb_edited (GtkCellRendererText *cellrenderertext,
+                gchar               *arg1,
+                gchar               *arg2,
+                gpointer             user_data);
+
+void cb_button_editor_response (GtkWidget *dialog,
+                                gint       arg1,
+                                gpointer   user_data);
+
+gboolean cb_entry_event (GtkWidget     *widget,
+                         GdkEvent      *event,
+                         gpointer       user_data);
+
+gboolean cb_row_deleted(GtkTreeModel *tree_model,
+                        GtkTreePath  *path,
+                        gpointer user_data);
+
+static void
+setup_sensitive(GemButtonBoxEditor *self,
+                gboolean use_glade);
+
+static void
+cb_use_glade_check_toggled(GtkToggleButton *togglebutton,
+                           gpointer         user_data);
+
+static void
+cb_glade_filechooser_file_activated(GtkFileChooser *chooser,
+                                    gpointer        user_data);
+
+static void gem_table_attach(GtkTable *table,
+                             int col, int col_span,
+                             int row,
+                             const char *label_text,
+                             GtkWidget *widget);
+
+
+%}
+
+class Gem:Button:Box:Editor from Gtk:Dialog
+{
+    private GemButtonBox *button_box;
+    private GtkListStore *store;
+    private GtkWidget *w_tree_view;
+    private GtkWidget *w_entry_label;
+    private GtkWidget *w_entry_balloon;
+    private GtkWidget *w_use_glade_check;
+    private GtkWidget *w_glade_filename_box;
+    private GtkWidget *w_glade_filechooser_button;
+    private gboolean is_inserting = FALSE;
+
+    public GtkWidget *
+    new (GemButtonBox *button_box)
+    {
+        GtkWidget *widget =  (GtkWidget *)GET_NEW;
+        GemButtonBoxEditor *self = GEM_BUTTON_BOX_EDITOR(widget);
+        GtkWidget *table;
+        GtkCellRenderer *renderer;
+        GtkTreeViewColumn *column;
+
+        table = gtk_table_new(2,3,false);
+        gtk_box_pack_start(GTK_BOX(GTK_DIALOG(widget)->vbox), table,
+                           FALSE, FALSE, 0);
+
+        selfp->w_entry_label = gtk_entry_new();
+        g_signal_connect(G_OBJECT(selfp->w_entry_label), "event",
+                         G_CALLBACK(cb_entry_event), widget);
+
+        gtk_entry_set_text(GTK_ENTRY(selfp->w_entry_label),
+                           gem_button_box_get_name(button_box));
+
+        int row = 0;
+        gem_table_attach(GTK_TABLE(table),
+                         0, 2,
+                         row++,
+                         "Label: ",
+                         selfp->w_entry_label);
+        
+        selfp->w_use_glade_check = gtk_check_button_new_with_label("Use glade?");
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(selfp->w_use_glade_check),
+                                     gem_button_box_get_use_glade(button_box));
+                                     
+        gem_table_attach(GTK_TABLE(table),
+                         0, 1,
+                         row,
+                         NULL,
+                         selfp->w_use_glade_check);
+
+        selfp->w_glade_filename_box = gtk_hbox_new(FALSE, 0);
+        selfp->w_glade_filechooser_button = gtk_file_chooser_button_new("Glade file",
+                                                                        GTK_FILE_CHOOSER_ACTION_OPEN);
+        const char *glade_filename = gem_button_box_get_glade_filename(button_box);
+        if (glade_filename)
+            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(selfp->w_glade_filechooser_button),
+                                          glade_filename);
+
+        g_signal_connect(selfp->w_glade_filechooser_button, "selection-changed",
+                         G_CALLBACK(cb_glade_filechooser_file_activated),
+                         self);
+        gtk_file_chooser_button_set_width_chars(GTK_FILE_CHOOSER_BUTTON(selfp->w_glade_filechooser_button),
+                                                20);
+
+        // A spacer...
+        gtk_box_pack_start(GTK_BOX(selfp->w_glade_filename_box),
+                           gtk_label_new("  "),
+                           FALSE, FALSE, 0);
+
+        gtk_box_pack_start(GTK_BOX(selfp->w_glade_filename_box),
+                           gtk_label_new("Glade file name:"),
+                           FALSE, FALSE, 0);
+        gtk_box_pack_start(GTK_BOX(selfp->w_glade_filename_box),
+                           selfp->w_glade_filechooser_button,
+                           FALSE, FALSE, 0);
+        // Disable by default
+        gtk_widget_set_sensitive(selfp->w_glade_filename_box, FALSE);
+
+        g_signal_connect(selfp->w_use_glade_check, "toggled",
+                         G_CALLBACK(cb_use_glade_check_toggled),
+                         self);
+
+        gem_table_attach(GTK_TABLE(table),
+                         1, 1,
+                         row++,
+                         NULL,
+                         selfp->w_glade_filename_box);
+
+        selfp->store = gtk_list_store_new (N_COLUMNS,
+                                           G_TYPE_STRING,
+                                           G_TYPE_STRING,
+                                           G_TYPE_OBJECT);
+        g_signal_connect(G_OBJECT(selfp->store), "row-deleted",
+                         G_CALLBACK(cb_row_deleted), self);
+                                  
+        selfp->button_box = button_box;
+        selfp->w_tree_view = gtk_tree_view_new_with_model (GTK_TREE_MODEL(selfp->store));
+        g_object_unref (G_OBJECT (selfp->store));
+        gtk_tree_view_set_reorderable(GTK_TREE_VIEW(selfp->w_tree_view),
+                                      TRUE);
+
+        renderer = gtk_cell_renderer_text_new ();
+        g_object_set_data(G_OBJECT(renderer),
+                          "column", GINT_TO_POINTER(0));
+        g_signal_connect(G_OBJECT(renderer), "edited",
+                         G_CALLBACK(cb_edited),
+                         self);
+        g_object_set(G_OBJECT(renderer),
+                     "editable", TRUE,
+                     NULL);
+
+        column = gtk_tree_view_column_new_with_attributes ("Label",
+                                                           renderer,
+                                                           "text", COL_LABEL,
+                                                           NULL);
+        gtk_tree_view_append_column (GTK_TREE_VIEW(selfp->w_tree_view), column);
+
+        renderer = gtk_cell_renderer_text_new ();
+        gtk_cell_renderer_text_set_fixed_height_from_font(GTK_CELL_RENDERER_TEXT(renderer), 1);
+        g_object_set_data(G_OBJECT(renderer),
+                          "column", GINT_TO_POINTER(1));
+        g_signal_connect(G_OBJECT(renderer), "edited",
+                         G_CALLBACK(cb_edited),
+                         self);
+        g_object_set(G_OBJECT(renderer),
+                     "editable", TRUE,
+                     "ellipsize", PANGO_ELLIPSIZE_END,
+                     NULL);
+
+        column = gtk_tree_view_column_new_with_attributes ("Script",
+                                                           renderer,
+                                                           "text", COL_SCRIPT,
+                                                           NULL);
+        gtk_tree_view_append_column (GTK_TREE_VIEW (selfp->w_tree_view), column);
+
+        GPtrArray *button_list = gem_button_box_get_button_list(selfp->button_box);
+        selfp->is_inserting = true;
+        for (int i=0; i<(int)button_list->len; i++) {
+            GtkButton *bbb = GTK_BUTTON(g_ptr_array_index(button_list, i));
+            GtkTreeIter   iter;
+
+            gem_button_box_button_bless(bbb,
+                                        gem_button_box_button_bless_get_label(bbb),
+                                        gem_button_box_button_bless_get_script(bbb),
+                                        GTK_WIDGET(selfp->button_box),
+                                        NULL,
+                                        false);
+                                        
+            gtk_list_store_append (selfp->store, &iter);
+            gtk_list_store_set (selfp->store, &iter,
+                                0, gem_button_box_button_bless_get_label(bbb),
+                                1, gem_button_box_button_bless_get_script(bbb),
+                                2, bbb,
+                                -1);
+        }
+        selfp->is_inserting = false;
+
+        GtkWidget *w_sw = gtk_scrolled_window_new(NULL, NULL);
+
+        gtk_widget_set_size_request(w_sw, 500, 400);
+        gtk_container_add(GTK_CONTAINER(w_sw),
+                          selfp->w_tree_view);
+
+        gtk_box_pack_start(GTK_BOX(GTK_DIALOG(widget)->vbox),
+                           w_sw,
+                           TRUE, TRUE, 0);
+
+        gtk_window_set_transient_for(GTK_WINDOW(widget),
+                                     GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button_box))));
+    
+        gtk_dialog_add_buttons(GTK_DIALOG(widget),
+                               GTK_STOCK_CLOSE,
+                               GTK_RESPONSE_CLOSE,
+                               GTK_STOCK_EDIT,
+                               RESPONSE_EDIT,
+                               GTK_STOCK_EXECUTE,
+                               RESPONSE_EXECUTE,
+                               GTK_STOCK_NEW,
+                               RESPONSE_NEW,
+                               NULL
+                               );
+
+        setup_sensitive(GEM_BUTTON_BOX_EDITOR(widget),
+                        gem_button_box_get_use_glade(button_box));
+
+        gtk_widget_show_all(widget);
+
+        return widget;
+    }
+
+    private gint
+    get_current_selected_row(self)
+    {
+        GtkTreeSelection *selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (selfp->w_tree_view));
+        GtkTreeIter iter;
+        GtkTreeModel *model;
+        int current_row = -1;
+        
+        if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
+            GtkTreePath *tree_path = gtk_tree_model_get_path(model,
+                                                             &iter);
+            gchar *tree_path_string = gtk_tree_path_to_string(tree_path);
+            
+            current_row = atoi(tree_path_string);
+            g_free(tree_path_string);
+            gtk_tree_path_free(tree_path);
+        }
+
+        return current_row;
+    }
+
+    private GtkButton *
+    get_current_row_to_iter(self)
+    {
+        GtkTreeSelection *selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (selfp->w_tree_view));
+        GtkTreeIter iter;
+        GtkTreeModel *model;
+        GtkButton *button = NULL;
+        
+        if (gtk_tree_selection_get_selected (selection, &model, &iter)) 
+            gtk_tree_model_get(model, &iter,
+                               COL_BUTTON, &button,
+                               -1);
+        return button;
+    }
+
+    override (Gtk:Dialog)
+    void
+    response (Gtk:Dialog *dialog (check null type),
+              gint response_id)
+    {
+        GemButtonBoxEditor *self = GEM_BUTTON_BOX_EDITOR(dialog);
+        switch (response_id) {
+        case GTK_RESPONSE_CLOSE:
+            gtk_widget_destroy(GTK_WIDGET(dialog));
+            break;
+        case RESPONSE_NEW:
+            {
+                GtkWidget *bbb=gem_button_box_add_button(selfp->button_box,
+                                                         NULL, NULL);
+                GtkTreeIter   iter;
+                
+                selfp->is_inserting = true;
+                gtk_list_store_append (selfp->store, &iter);
+                gtk_list_store_set (selfp->store, &iter,
+                                    0, gem_button_box_button_bless_get_label(GTK_BUTTON(bbb)),
+                                    1, gem_button_box_button_bless_get_script(GTK_BUTTON(bbb)),
+                                    2, bbb,
+                                    -1);
+                selfp->is_inserting = false;
+                
+                
+            }
+            break;
+        case RESPONSE_EDIT:
+        case RESPONSE_EXECUTE:
+            {
+                GtkTreeSelection *selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (selfp->w_tree_view));
+                GtkTreeIter iter;
+                GtkTreeModel *model;
+
+                if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
+                    GtkButton *bbb;
+                    
+                    gtk_tree_model_get(model, &iter,
+                                       COL_BUTTON, &bbb,
+                                       -1);
+                    
+                    if (response_id == RESPONSE_EDIT) {
+                        GtkWidget *button_editor = gem_button_box_button_bless_editor_new(GTK_WIDGET(bbb));
+                        GtkTreePath *path = gtk_tree_model_get_path(model, &iter);
+
+                        g_signal_connect_after(G_OBJECT(button_editor), "response",
+                                               G_CALLBACK(cb_button_editor_response), self);
+                        g_object_set_data_full(G_OBJECT(button_editor),
+                                               "path", path,
+                                               (GDestroyNotify)gtk_tree_path_free);
+
+                        gtk_widget_show_all(button_editor);
+                    }
+                    else {
+                        gem_button_box_button_bless_cmd_eval(bbb, NULL);
+                    }
+                }
+            }
+            break;
+        default:
+            ;
+        }
+
+        PARENT_HANDLER (GTK_DIALOG(self), response_id);
+    }
+}
+
+%{
+void cb_edited (GtkCellRendererText *cellrenderertext,
+                gchar               *path_string,
+                gchar               *new_text,
+                gpointer             user_data)
+{
+    GemButtonBoxEditor *self = GEM_BUTTON_BOX_EDITOR(user_data);
+    GtkListStore *store = selfp->store;
+    GemButtonBox *bb = selfp->button_box;
+    GtkTreeIter iter;
+    int column = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(cellrenderertext),
+                                                   "column"));
+    int row = atoi(path_string);
+
+    /* get the iterator from a string */
+    gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (store), &iter, path_string);
+
+    /* walk the tree to find the iterator */
+    gtk_tree_model_iter_nth_child (GTK_TREE_MODEL (store), &iter, NULL, row);
+
+    selfp->is_inserting = true;
+    gtk_list_store_set(store, &iter,
+                       column, new_text,
+                       -1);
+    selfp->is_inserting = false;
+
+    GPtrArray *button_list = gem_button_box_get_button_list(bb);
+    GtkButton *bbb = GTK_BUTTON(g_ptr_array_index(button_list, row));
+
+    switch(column) {
+    case COL_LABEL:
+        gem_button_box_button_bless_set_label(bbb, new_text);
+        break;
+    case COL_SCRIPT:
+        gem_button_box_button_bless_set_script(bbb, new_text);
+        break;
+    default:
+        break;
+        ;
+    }
+}
+
+void cb_button_editor_response (GtkWidget *dialog,
+                                gint       arg1,
+                                gpointer   user_data)
+{
+    GemButtonBoxEditor *self = GEM_BUTTON_BOX_EDITOR(user_data);
+    GtkTreeIter iter;
+
+    // Just copy contents of buffer to the corresponding pos
+    GtkTreePath *path = (GtkTreePath*)(g_object_get_data(G_OBJECT(dialog), "path"));
+    gtk_tree_model_get_iter(GTK_TREE_MODEL(selfp->store), &iter, path);
+
+    GtkWidget *bbb;
+
+    gtk_tree_model_get(GTK_TREE_MODEL(selfp->store), &iter,
+                       COL_BUTTON, &bbb,
+                       -1);
+
+    selfp->is_inserting = true;
+
+    gtk_list_store_set (selfp->store, &iter,
+                        0, gem_button_box_button_bless_get_label(GTK_BUTTON(bbb)),
+                        1, gem_button_box_button_bless_get_script(GTK_BUTTON(bbb)),
+                        -1);
+    selfp->is_inserting = false;
+}
+
+gboolean cb_entry_event (GtkWidget     *widget,
+                         GdkEvent      *event,
+                         gpointer       user_data)
+{
+    GemButtonBoxEditor *self = GEM_BUTTON_BOX_EDITOR(user_data);
+    const gchar *new_label = gtk_entry_get_text(GTK_ENTRY(selfp->w_entry_label));
+
+    gem_button_box_set_name(selfp->button_box, new_label);
+    return FALSE;
+}
+
+gboolean cb_row_deleted(GtkTreeModel *tree_model,
+                        GtkTreePath  *path,
+                        gpointer user_data)
+{
+    GemButtonBoxEditor *self = GEM_BUTTON_BOX_EDITOR(user_data);
+    GtkButton *bbb = NULL;
+
+    if (selfp->is_inserting)
+        return FALSE;
+    
+    GPtrArray *bbb_list = g_ptr_array_new();
+    GtkTreeIter it;
+    gtk_tree_model_get_iter_first(tree_model, &it);
+    do {
+        bbb = NULL;
+        gtk_tree_model_get(tree_model, &it,
+                           COL_BUTTON, &bbb,
+                           -1);
+        if (bbb) {
+            // printf("Adding %x...\n", bbb);
+            g_ptr_array_add(bbb_list, (gpointer)bbb);
+            g_object_unref(G_OBJECT(bbb));
+        }
+    } while(gtk_tree_model_iter_next(tree_model, &it));
+    gem_button_box_set_button_list(selfp->button_box,
+                                   bbb_list);
+    g_ptr_array_free(bbb_list, TRUE);
+    
+    return FALSE;
+}
+ 
+static void
+cb_use_glade_check_toggled(GtkToggleButton *togglebutton,
+                           gpointer         user_data)
+{
+    GemButtonBoxEditor *self = GEM_BUTTON_BOX_EDITOR(user_data);
+    gboolean is_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton));
+    gchar *glade_filename = NULL;
+
+    setup_sensitive(self, is_active);
+
+    if (is_active)
+        glade_filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(selfp->w_glade_filechooser_button));
+
+    gem_button_box_set_glade_file(selfp->button_box,
+                                  glade_filename);
+    if (glade_filename)
+        g_free(glade_filename);
+
+    gem_button_box_set_use_glade(selfp->button_box,
+                                 is_active);
+}
+
+static void
+setup_sensitive(GemButtonBoxEditor *self,
+                gboolean use_glade)
+{
+    gtk_widget_set_sensitive(selfp->w_glade_filename_box, use_glade);
+    gtk_widget_set_sensitive(selfp->w_tree_view, !use_glade);
+}
+
+static void
+cb_glade_filechooser_file_activated(GtkFileChooser *chooser,
+                                    gpointer        user_data)
+{
+    GemButtonBoxEditor *self = GEM_BUTTON_BOX_EDITOR(user_data);
+
+    gchar *filename = gtk_file_chooser_get_filename(chooser);
+    if (filename) {
+        gem_button_box_set_glade_file(selfp->button_box,
+                                      filename);
+        gem_button_box_set_glade_filename(selfp->button_box,
+                                          filename);
+    }
+    g_free(filename);
+    
+}
+        
+static void gem_table_attach(GtkTable *table,
+                             int col, int col_span,
+                             int row, 
+                             const char *label_text,
+                             GtkWidget *widget)
+{
+    if (label_text) {
+        gtk_table_attach(GTK_TABLE(table),
+                         gtk_label_new(label_text),
+                         col, col+1,
+                         row, row+1,
+                         GtkAttachOptions(GTK_FILL),
+                         GtkAttachOptions(GTK_FILL),
+                         0,0);
+        col++;
+    }
+    
+    gtk_table_attach(GTK_TABLE(table),
+                     widget,
+                     col, col+col_span,
+                     row, row+1,
+                     GtkAttachOptions(GTK_FILL),
+                     GtkAttachOptions(GTK_FILL),
+                     0,0);
+}
+
+
+
+%}

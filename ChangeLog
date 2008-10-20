@@ -1,0 +1,155 @@
+2008-09-20  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gemtcl.cc, gem-button-box.cc : Added new commands
+	tcl_widget_set_sensitive and tcl_widget_set_insensitive to
+	set widget states to sensitive and insensitive.
+
+2008-09-19  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gemtcl.cc : Added ChangeLog view to Help menu to see latest
+	ChangeLog.
+
+	* gem-button-box-bless-editor.gob: Made execute command run
+	the selection if it has been set instead of complete buffer.
+
+	* gemtcl.cc, gem-button-box.gob: Added two new tcl commands
+	tcl_widget_hide and tcl_widget_show that may be used for
+	hiding widgets programatically for more interactive
+	displays.
+
+2008-07-13  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gemtcl.cc: Fixed yet another bug in line evaluation.
+
+	* gemtcl.cc: Fixed bug that prevented evaluation of pasted
+	text from working.
+
+	* gemtcl.cc: Changed size request so that it works on window
+	and not on text buffer!
+
+2008-07-02  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gemtcl.cc: Added new command gemtcl_serve that handles any
+	pending button presses. (Can get automatic gemtcl_serve handling
+	by redefining while and for )...
+
+	* gemtcl.cc: Made size of window sticky.
+
+2008-06-12  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+
+	* Released version 0.1.20
+
+	* Fixed bug in assignment of empty value in widgets.
+
+	* Added lassign to additional tcl statements.
+
+2008-06-11  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+
+	* Added option for setting combo boxes.
+
+2008-04-11  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* Added history window through F2.
+
+2008-03-19  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* Added xmlrpc connections, e.g. for labview and Quality Center.
+
+2007-09-16  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+
+	* Released version 0.1.8
+
+	* gem-button-box.gob: Erased ugly h-separator at the
+	bottom of the screen.
+
+2007-09-10  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+
+	* gemtcl.cc: Fixed bug that caused cursor to jump to end 
+	of line when entering a first character on the line.
+
+2007-09-09  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+	
+	* Released version 0.1.7
+
+	* gemtcl.cc: Escape erases current line.
+
+	* gemtcl.cc: Don't do backspace if at beginning of line.
+
+	* gemtcl.nsi.in: Added local copy of tcl library.
+
+	* gemtcl.cc: Fixed bug with two inserted prompts.
+
+	* gemtcl.cc: Made insert move the insert to the end of the buffer.
+
+2007-06-05  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gem-button-box-button-bless.cc: Added right hand popup
+	menu clicked when blessing a button.
+
+2007-05-20  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gem-button-box.gob: Added delete button procedure.
+
+	* gem-button-box-button.gob: Connected delete menu entry to 
+	delete procedure.
+
+	* gem-button-box-button-editor: Changed editor to GtkSourceView.
+
+2007-05-18  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gemtcl.cc: Added Accept button as default box in the file
+	chooser dialog so that Enter works in the filename entry.
+
+	* gem-button-box-button-editor: Changed editor to GtkSourceView.
+
+2007-05-17  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gem-button-box.cpp: Fixed xnm quote protection is saving.
+
+	* gemtcl.cpp: Added DnD
+
+2007-05-09  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* SConstruct: Added construction of version.h from env variable.
+
+	* Fixed error in xnm format escaping.
+
+2007-05-06  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* Made puts scroll to end of buffer.
+
+2007-05-02  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* Made load save the filename in gem_button_box.
+	
+	* Regrab focusing to text view on each tcl eval to lessen
+	accidental triggering of buttons.
+	
+	* Scrolled buffer to end of line.
+
+2007-05-01  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* Moved close button box to file menu.
+
+	* Fixed bug of extra '%' when pressing buttons.
+
+	* Added save command that saves file to last filename.
+
+2007-04-20  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* Moved to end of sentence as part of the return command.
+
+	* Made home and end move to beginning and end of command 
+	respectively instead of beginning and end of the line.
+
+	* Made puts insert info before any new commands added by the user
+	at the end of the buffer.
+
+2007-04-16  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* Improved history support.
+
+	* Made button order reorderable.
+
+	* Created changelog.
+

@@ -1,0 +1,58 @@
+name => "VFMove"
+use_glade => 1
+glade_filename => "glade-demo.glade"
+buttons=> [
+]
+glade_scripts => [
+  {
+    name => "button-up"
+    script => "puts \"move_to 0 [gemtcl_get distance][gemtcl_get units]\""
+  }
+  {
+    name => "button-left"
+    script => "puts \"move_to -[gemtcl_get distance][gemtcl_get units] 0\""
+  }
+  {
+    name => "button-down"
+    script => "puts \"move_to 0 -[gemtcl_get distance][gemtcl_get units]\""
+  }
+  {
+    name => "button-forward"
+    script => "puts \"move_to [gemtcl_get distance][gemtcl_get units] 0\""
+  }
+  {
+    name => "button1"
+    script => "puts \"move_to 0 0\"
+"
+  }
+  {
+    name => "button2"
+    script => "puts \"toggle=[gemtcl_get toggle]\"
+puts \"rad1=[gemtcl_get radiobutton1]\"
+puts \"rad2=[gemtcl_get radiobutton2]\"
+puts \"rad3=[gemtcl_get radiobutton3]\"
+"
+  }
+  {
+    name => "button3"
+    script => "puts \"Be happy! Move longer!\"
+gemtcl_set distance [expr [gemtcl_get distance]+1]
+gemtcl_set toggle [expr ![gemtcl_get toggle]]
+if {[gemtcl_get toggle]} { 
+  gemtcl_set image_therm  therm50.svg
+} else {
+  gemtcl_set image_therm  therm.svg
+}
+  "
+  }
+]
+glade_inputs => [
+  {
+    name => "distance"
+    value => "145"
+  }
+  {
+    name => "units"
+    value => 0
+  }
+]

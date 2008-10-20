@@ -1,0 +1,7 @@
+Import('env')
+
+env.Library("xnm",
+            ["xnm-parser.y",
+             "xnm-retrieve.c",
+             "xnm-struct.c"])
+
