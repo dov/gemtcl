@@ -50,4 +50,5 @@ Makefile
 src/Makefile
 src/xnm/Makefile
 src/plis/Makefile
+doc/Makefile
 ])

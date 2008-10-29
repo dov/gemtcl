@@ -52,6 +52,7 @@ typedef int (GNetXmlRpcCommandAsyncCallback)(GNetXmlRpcServer *server,
 
 
 GNetXmlRpcServer *gnet_xmlrpc_server_new(int port);
+void gnet_xmlrpc_server_delete(GNetXmlRpcServer *xmlrpc_server);
 
 int gnet_xmlrpc_server_register_command(GNetXmlRpcServer *xmlrpc_server,
 					const gchar *command,

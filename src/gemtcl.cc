@@ -82,6 +82,9 @@ static void cb_menu_edit_button_box(gpointer   callback_data,
 static void cb_menu_tools_history(gpointer   callback_data,
                                   guint      callback_action,
                                   GtkWidget *widget);
+static void cb_menu_tools_xmlrpc(gpointer   callback_data,
+                                 guint      callback_action,
+                                 GtkWidget *widget);
 static int command_tcl_eval_add_newline(const gchar *cmd);
 static int command_tcl_eval(const gchar *cmd);
 
@@ -112,6 +115,23 @@ static void cb_switched_page (GtkNotebook     *notebook,
                               guint            page_num,
                               gpointer         user_data);
 static int xmlrpc_cmd_tcl_eval_finish(const gchar *reply);
+int xmlrpc_cmd_ping(GNetXmlRpcServer *server,
+                    const gchar *command,
+                    const gchar *param,
+                    gpointer user_data,
+                    // output
+                    gchar **reply_string);
+int xmlrpc_cmd_tcl_eval(GNetXmlRpcServer *server,
+                        GConn *gnet_client,
+                        const gchar *command,
+                        const gchar *param,
+                        gpointer user_data);
+int xmlrpc_cmd_append_to_log(GNetXmlRpcServer *server,
+                             const gchar *command,
+                             const gchar *param,
+                             gpointer user_data,
+                             // output
+                             gchar **reply_string);
 
 static GtkItemFactoryEntry menu_items[] = {
     { "/_File",		 NULL,	       0,		      0, "<Branch>" },
@@ -126,7 +146,8 @@ static GtkItemFactoryEntry menu_items[] = {
     { "/Edit/ButtonBox",  NULL, (GtkItemFactoryCallback)cb_menu_edit_button_box,       0, "<Item>", 0 },
     { "/Edit/Preferences",   NULL,         0,       0, "<StockItem>", GTK_STOCK_PREFERENCES },
     { "/_Tools",		 NULL,	       0,		      0, "<Branch>" },
-    { "/_Tools/_History",  NULL, (GtkItemFactoryCallback)cb_menu_tools_history,       0, "<Item>" },
+    { "/_Tools/_History",  NULL, (GtkItemFactoryCallback)cb_menu_tools_history,   0, "<Item>" },
+    { "/_Tools/_XmlRpc",  NULL, (GtkItemFactoryCallback)cb_menu_tools_xmlrpc,       0, "<CheckItem>" },
     { "/_View",		 NULL,	       0,		      0, "<Branch>" },
     { "/_View/_ButtonBox",  NULL, (GtkItemFactoryCallback)cb_toggle_view_button_box,       0, "<CheckItem>", 0 },
     { "/_Help",		 NULL,	       0,		      3, "<LastBranch>" },
@@ -163,7 +184,7 @@ static string tcl_eval_string;
 static string button_box_tcl_string="";
 vector<GtkWidget*> button_box_list;
 slip last_image_path;
-static GNetXmlRpcServer *server;
+static GNetXmlRpcServer *xmlrpc_server;
 GConn *xmlrpc_handle = NULL;
 double window_width=800, window_height=600;
 slip settings_file;
@@ -930,6 +951,40 @@ void create_widgets()
     gtk_widget_show_all(w_window);
 }
 
+static void close_xmlrpc()
+{
+    gnet_xmlrpc_server_delete(xmlrpc_server);
+    xmlrpc_server = NULL;
+}
+
+static int create_xmlrpc(int port)
+{
+    if (port < 0)
+        port = 8822; // Default port
+    if (xmlrpc_server)
+        close_xmlrpc();
+
+    // Create the xmlrpc server
+    xmlrpc_server = gnet_xmlrpc_server_new(port);
+    if (xmlrpc_server) {
+        gnet_xmlrpc_server_register_command(xmlrpc_server,
+                                            "Ping",
+                                            xmlrpc_cmd_ping,
+                                            NULL);
+        gnet_xmlrpc_server_register_async_command(xmlrpc_server,
+                                                  "TclEval",
+                                                  xmlrpc_cmd_tcl_eval,
+                                                  NULL);
+        gnet_xmlrpc_server_register_command(xmlrpc_server,
+                                            "AppendToLog",
+                                            xmlrpc_cmd_append_to_log,
+                                            NULL);
+    }
+    else
+        return -1;
+    return 0;
+}
+
 static int tcl_puts(ClientData clientData,
                     Tcl_Interp *interp,
                     int argc, const char *argv[])
@@ -1321,6 +1376,62 @@ static int tcl_gemtcl_get_last_command_log(ClientData clientData,
     return 0;
 }
 
+static int tcl_gemtcl_xmlrpc_server(ClientData clientData,
+                                    Tcl_Interp *tcl,
+                                    int argc, const char *argv[])
+{
+    int port = -1; // default
+    int argp = 1;
+
+    if (argc == 1) {
+        const char* on_off_names[] = { "off", "on" };
+        int xmlrpc_mode = (xmlrpc_server != NULL);
+        Tcl_SetResult(interp, g_strdup_printf("xmlrpc is %s",
+                                              on_off_names[xmlrpc_mode]),
+                      tcl_str_free);
+    }
+    else {
+        bool new_state = false;
+        while(argp < argc) {
+            slip S_ = argv[argp++];
+            CASE("-on") {
+                new_state = true;
+                continue;
+            }
+            CASE("-off") {
+                new_state = false;
+                continue;
+            }
+            CASE("-port") {
+                port = atoi(argv[argp++]);
+                new_state = true;
+                continue;
+            }
+            Tcl_SetResult(interp, g_strdup_printf("Unknown option %s!",
+                                                  S_.c_str()),
+                          tcl_str_free);
+            return TCL_ERROR;
+        }
+        if (new_state) {
+            int ret = create_xmlrpc(port);
+            if (ret != 0) {
+                Tcl_SetResult(interp,
+                              g_strdup("Failed creating xmlrpc server!"),
+                              tcl_str_free);
+
+                return TCL_ERROR;
+            }
+            Tcl_SetResult(interp, g_strdup_printf(""), tcl_str_free);
+        }
+        else {
+            Tcl_SetResult(interp, g_strdup_printf(""), tcl_str_free);
+
+            close_xmlrpc();
+        }
+    }
+    return TCL_OK;
+}
+
 static void
 app_error (const char *format, ...)
 {
@@ -1565,6 +1676,9 @@ void thread_init_tcl()
     Tcl_CreateCommand(interp, "gemtcl_get_last_command_log",
                       tcl_gemtcl_get_last_command_log, (ClientData) NULL,
                       (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand(interp, "gemtcl_xmlrpc_server",
+                      tcl_gemtcl_xmlrpc_server, (ClientData) NULL,
+                      (Tcl_CmdDeleteProc *) NULL);
     Tcl_Eval(interp,
              "proc shift {list} {\n"
              "  upvar $list l\n"
@@ -1779,7 +1893,6 @@ static void cb_menu_tools_history(gpointer   callback_data,
                                            cb_history_selection_func,
                                            NULL,
                                            NULL);
-    GtkTreeIter last_iter;
     for (int i=0; i<(int)history.size(); i++) {
         GtkTreeIter   iter;
         gtk_list_store_append (store, &iter);  /* Acquire an iterator */
@@ -2148,6 +2261,18 @@ static void cb_toggle_view_button_box(gpointer   callback_data,
         gtk_widget_hide(w_button_box_vbox);
 }
 
+static void cb_menu_tools_xmlrpc(gpointer   callback_data,
+                                 guint      callback_action,
+                                 GtkWidget *widget)
+
+{
+    bool do_xmlrpc = gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (gtk_item_factory_get_item (item_factory, "/Tools/XmlRpc")));
+    if (do_xmlrpc)
+        create_xmlrpc(-1);
+    else
+        close_xmlrpc();
+}
+
 void cb_button_box_name_changed(GtkWidget *widget,
                                 const gchar *new_name)
 {
@@ -2394,24 +2519,6 @@ int main(int argc, char **argv)
     }
 
     // set_tcl_library_from_executable();
-
-    // Create the xmlrpc server
-    const int port = 8822;
-    server = gnet_xmlrpc_server_new(port);
-    if (server) {
-        gnet_xmlrpc_server_register_command(server,
-                                            "Ping",
-                                            xmlrpc_cmd_ping,
-                                            NULL);
-        gnet_xmlrpc_server_register_async_command(server,
-                                                  "TclEval",
-                                                  xmlrpc_cmd_tcl_eval,
-                                                  NULL);
-        gnet_xmlrpc_server_register_command(server,
-                                            "AppendToLog",
-                                            xmlrpc_cmd_append_to_log,
-                                            NULL);
-    }
 
     gtk_main();
     gdk_threads_leave();

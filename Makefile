@@ -135,8 +135,8 @@ SET_MAKE =
 SHELL = /bin/sh
 STRIP = strip
 VERSION = 0.1.26
-YACC = @YACC@
-YFLAGS = @YFLAGS@
+YACC = bison -y
+YFLAGS = 
 abs_builddir = /archive/svnwork/gemtcl
 abs_srcdir = /archive/svnwork/gemtcl
 abs_top_builddir = /archive/svnwork/gemtcl
@@ -188,7 +188,7 @@ sysconfdir = ${prefix}/etc
 target_alias = 
 top_builddir = .
 top_srcdir = .
-SUBDIRS = src
+SUBDIRS = src doc
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

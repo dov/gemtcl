@@ -10,34 +10,34 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 20 "gem-button-box.gob"
+#line 20 "src/gem-button-box.gob"
 
 #include <glade/glade-parser.h>
 #include <glade/glade-xml.h>
 
 #line 19 "gem-button-box-private.h"
 struct _GemButtonBoxPrivate {
-#line 78 "gem-button-box.gob"
+#line 78 "src/gem-button-box.gob"
 	GtkWidget * w_table;
-#line 79 "gem-button-box.gob"
+#line 79 "src/gem-button-box.gob"
 	GtkWidget * w_toolbar;
-#line 80 "gem-button-box.gob"
+#line 80 "src/gem-button-box.gob"
 	GtkWidget * w_notebook;
-#line 81 "gem-button-box.gob"
+#line 81 "src/gem-button-box.gob"
 	GtkWidget * w_glade_widget;
-#line 82 "gem-button-box.gob"
+#line 82 "src/gem-button-box.gob"
 	GemCmdEval * cmd_eval;
-#line 83 "gem-button-box.gob"
+#line 83 "src/gem-button-box.gob"
 	GPtrArray * button_list;
-#line 84 "gem-button-box.gob"
+#line 84 "src/gem-button-box.gob"
 	GPtrArray * glade_widget_list;
-#line 85 "gem-button-box.gob"
+#line 85 "src/gem-button-box.gob"
 	gchar * glade_filename;
-#line 86 "gem-button-box.gob"
+#line 86 "src/gem-button-box.gob"
 	gboolean use_glade;
-#line 87 "gem-button-box.gob"
+#line 87 "src/gem-button-box.gob"
 	GladeInterface * gif;
-#line 88 "gem-button-box.gob"
+#line 88 "src/gem-button-box.gob"
 	GladeXML * xml;
 #line 43 "gem-button-box-private.h"
 };

@@ -145,7 +145,10 @@ gem_button_box_button_bless_cmd_eval(GtkButton *button, const char *cmd)
 {
     GemCmdEval *cmd_eval = (GemCmdEval*)g_object_get_data(G_OBJECT(button),
                                                           "cmd_eval");
-                                                          
+    // Prevent crash - though this shouldn't happen!
+    if (!cmd_eval)
+        return;
+
     if (cmd == NULL) {
         const gchar *script = gem_button_box_button_bless_get_script(button);
         cmd_eval(script);

@@ -209,13 +209,15 @@ class Gem:Button:Box:Editor from Gtk:Dialog
             GtkButton *bbb = GTK_BUTTON(g_ptr_array_index(button_list, i));
             GtkTreeIter   iter;
 
+#if 0
             gem_button_box_button_bless(bbb,
                                         gem_button_box_button_bless_get_label(bbb),
                                         gem_button_box_button_bless_get_script(bbb),
                                         GTK_WIDGET(selfp->button_box),
                                         NULL,
                                         false);
-                                        
+#endif
+            
             gtk_list_store_append (selfp->store, &iter);
             gtk_list_store_set (selfp->store, &iter,
                                 0, gem_button_box_button_bless_get_label(bbb),

@@ -10,30 +10,30 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#line 14 "gem-button-box-editor.gob"
+#line 14 "src/gem-button-box-editor.gob"
 
 #include "gem-button-box-button-bless.h"
 #include "gem-button-box-button-bless-editor.h"
 
 #line 19 "gem-button-box-editor-private.h"
 struct _GemButtonBoxEditorPrivate {
-#line 74 "gem-button-box-editor.gob"
+#line 74 "src/gem-button-box-editor.gob"
 	GemButtonBox * button_box;
-#line 75 "gem-button-box-editor.gob"
+#line 75 "src/gem-button-box-editor.gob"
 	GtkListStore * store;
-#line 76 "gem-button-box-editor.gob"
+#line 76 "src/gem-button-box-editor.gob"
 	GtkWidget * w_tree_view;
-#line 77 "gem-button-box-editor.gob"
+#line 77 "src/gem-button-box-editor.gob"
 	GtkWidget * w_entry_label;
-#line 78 "gem-button-box-editor.gob"
+#line 78 "src/gem-button-box-editor.gob"
 	GtkWidget * w_entry_balloon;
-#line 79 "gem-button-box-editor.gob"
+#line 79 "src/gem-button-box-editor.gob"
 	GtkWidget * w_use_glade_check;
-#line 80 "gem-button-box-editor.gob"
+#line 80 "src/gem-button-box-editor.gob"
 	GtkWidget * w_glade_filename_box;
-#line 81 "gem-button-box-editor.gob"
+#line 81 "src/gem-button-box-editor.gob"
 	GtkWidget * w_glade_filechooser_button;
-#line 82 "gem-button-box-editor.gob"
+#line 82 "src/gem-button-box-editor.gob"
 	gboolean is_inserting;
 #line 39 "gem-button-box-editor-private.h"
 };

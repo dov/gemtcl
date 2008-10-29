@@ -88,7 +88,15 @@ else:
     env['PKGGTKSOURCEVIEW'] = "gtksourceview-2.0"
     env.Append(LIBS = ['tcl'])
 
+env.Command("README",
+            ["README.in",
+             "SConstruct",
+             ],
+            template_fill
+            )
+
 env.ParseConfig("${PKGCONFIG} --cflags --libs gtk+-2.0 gthread-2.0 libpcre ${PKGGTKSOURCEVIEW} libglade-2.0 gnet-2.0")
 
-SConscript(['src/SConscript'],
+SConscript(['src/SConscript',
+            'doc/SConscript'],
            exports='env')

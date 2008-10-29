@@ -10,11 +10,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _GemButtonBoxButtonBlessEditorPrivate {
-#line 45 "gem-button-box-button-bless-editor.gob"
+#line 45 "src/gem-button-box-button-bless-editor.gob"
 	GtkWidget * button_box_button;
-#line 46 "gem-button-box-button-bless-editor.gob"
+#line 46 "src/gem-button-box-button-bless-editor.gob"
 	GtkTextBuffer * text_buffer;
-#line 47 "gem-button-box-button-bless-editor.gob"
+#line 47 "src/gem-button-box-button-bless-editor.gob"
 	GtkWidget * w_entry_label;
 #line 20 "gem-button-box-button-bless-editor-private.h"
 };

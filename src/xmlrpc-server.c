@@ -45,7 +45,6 @@ static void ob_server_func (GServer* server, GConn* conn, gpointer user_data);
 static void ob_client_func (GConn* conn, GConnEvent* event, 
                             gpointer user_data);
 gchar *create_response_string(const gchar *reply);
-static GServer* ob_server = NULL;
 
 int extract_xmlrpc_request(const gchar *str,
                            /* output */
@@ -71,9 +70,11 @@ GNetXmlRpcServer *gnet_xmlrpc_server_new(int port)
   return (GNetXmlRpcServer*)xmlrpc_server;
 }
 
-void gnet_xmlrpc_server_delete(GNetXmlRpcServer *server)
+void gnet_xmlrpc_server_delete(GNetXmlRpcServer *xmlrpc_server)
 {
-  gnet_server_delete (ob_server);
+  g_hash_table_destroy(((GNetXmlRpcServerPrivate*)xmlrpc_server)->command_hash);
+  gnet_server_delete (((GNetXmlRpcServerPrivate*)xmlrpc_server)->server.gnet_server);
+  g_free(xmlrpc_server);
 }
 
 static void
