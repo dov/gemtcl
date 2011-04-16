@@ -1,0 +1,13 @@
+Import('env')
+
+lib = env.Library("xmlrpc-server",
+                  "xmlrpc-server.c")
+
+env.Program("example-server",
+            ["example-server.c",
+             lib],
+            LIBS = env['LIBS'])
+env.Program("microscope-server",
+            ["microscope-server.c",
+             lib],
+            LIBS = env['LIBS'])

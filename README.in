@@ -1,7 +1,7 @@
 General Information
 ===================
 
-This is GemTcl version 0.1.33. GemTcl is a multi-platform tcl shell
+This is GemTcl version @VER@. GemTcl is a multi-platform tcl shell
 that in additional to interactive work allows the creation of a
 matrix of buttons where each button may contain a script that 
 may be edited from the tool. In addition GemTcl allows loading 

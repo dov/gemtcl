@@ -1,0 +1,9 @@
+import re
+Import('env')
+
+env.Command("manual.html",
+            "manual.txt",
+            ["asciidoc -b xhtml11 ${SOURCE} > ${TARGET}"])
+env.Command("tutorial.html",
+            "tutorial.txt",
+            ["asciidoc -b xhtml11 ${SOURCE} > ${TARGET}"])

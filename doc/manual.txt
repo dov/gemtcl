@@ -1,0 +1,221 @@
+= GemTcl 0.1.27 =
+
+Dov  Grobgeld <dov.grobgeld@gmail.com>
+
+v0.1.1, Thursday 2008-12-25 12:01 
+
+== Background ==
+
+This a user manual for using GemTcl. GemTcl is a tcl shell written
+in Gtk with the following features:
+
+* Interactive editing with history on Windows and *nix.
+* Create button boxes with common commands that may be saved.
+* Creation of complete interfaces through glade where the buttons may be edited through gemtcl.
+* Especially suited for remote control applications by any remote
+  control mechanism supported by GemTcl, e.g. Corba or XmlRpc.
+
+== Button boxes == 
+
+GemTcl allows creating button boxes that contain a set of buttons that 
+have labels and scripts attached to them. To create a button box press 
+File/New . Then press [New] to create a new button. The new button may 
+has a default script attached to it that is run when the button is clicke
+with mouse button 1 . The label and the script of the button may be edited
+by right clicking on the button and pressing Edit.
+
+== Glade interface ==
+
+When loading a glade interface GemTcl uses the names of the widgets
+for read and write access. The reading and writing are done through the 
+two tcl commands:
+
+  gemtcl_set name value
+  gemtcl_get name
+
+E.g. consider an interface composed of an entry widget named "dist"
+containing a numeric value and a button that is supposed to increase the
+value in "dist". This may be done through the following script
+
+  gemtcl_set dist [expr [gemtcl_get dist]+1]
+
+The following screenshot shows a glade interface of a simulated
+microscope application.
+
+image:gemtcl-screenshot.png[]
+
+== gemtcl commands ==
+
+Here is a list of all the additional tcl commands defined by gemtcl.
+Most commands (those referencing widgets by name) are only relevant
+when glade files have been loaded.
+
+=== gemtcl_widget_hide ===
+
+Hide a widget from being displayed.
+
+=== gemtcl_widget_show ===
+
+Show a widget that has been hidden.
+
+=== gemtcl_widget_sensitive ===
+
+Turn on the sensitivity of a widget.
+
+=== gemtcl_widget_insensitive ===
+
+Turn off sensitivy of a widget.
+
+=== gemtcl_serve ===
+
+This command allows for recursion when running a loop. As the tcl
+interpreter is running in a different thread, it has no knowledge if
+any buttons have been pressed in gemtcl. By calling gemtcl_serve in
+the loop the control is temporarily passed back to the gtk thread and 
+if any button has been pressed, it is served, and control is then 
+returned to after gemtcl_serve.
+
+It is typically used in a loop like this:
+
+  # In an init script
+  proc gever args {
+      set abort 0
+      while{!$abort} {
+          gemtcl_serve
+          exec $args
+      }
+  }
+  
+  # In a "Start acquire button"
+  gever { get_image; after 100 }
+  
+  # In a "Stop acquire button"
+  set abort 1
+
+=== gemtcl_load ===
+
+Load a gtf file.
+
+=== gemtcl_get ===
+
+Get value of a glade button.
+
+=== gemtcl_set ===
+
+Set the value of a glade button.
+
+=== gemtcl_xmlrpc_server ===
+
+Use
+
+  gemtcl_xmlrpc_server -on 
+
+to turn on the xmlrpc server. The port may be specified through the -port
+option:
+
+  gemtcl_xmlrpc_server -port 8825
+
+To turn off the xmlrpc server do:
+
+  gemtcl_xmlrpc_server -off
+
+=== gemtcl_xmlrpc_client ===
+
+  gemtcl_xmlrpc_client - Send xmlrpc commands to remote server
+  
+  Syntax:
+      gemtcl_xmlrpc_client [-connect] [-handle handle] [-host host]
+                           [-port port] [-method m] [-params p]
+  
+  Options:
+      -connect    Connect to a remote server and return a handle
+      -close      Disconnect a handle
+      -handle h   Handle returned from -connect option
+      -host host  Host to connect to
+      -port port  Port to connect to
+      -method m   Method to call
+      -params p   Parameter string
+
+Example usage:
+
+  set xh [gemtcl_xmlrpc_client -connect -host localhost -port 8811]
+  gemtcl_xmlrpc_client -handle $xh -method SetImage \
+      -params "/home/dov/pictures/elefant.pgm"
+  gemtcl_xmlrpc_client -close -handle $xh
+
+=== xnm ===
+
+  xnm - Parse strings in the xnm syntax
+  
+  Syntax:
+      xnm -get [-handle handle] [-file file] [-string s] [-key key] [-len]
+  
+  Options:
+      -file file       Filename of file to parse
+      -string string   String to parse
+      -key key         Key to return value of
+      -len             Return length of an array. Returns -1 for non-arrays.
+      -ref             Returns type of value or under if not defined.
+      -keylist         Return a list of keys for a table.
+      -parse           Parse and return handle
+      -handle h        Preparsed object
+      -close           Close a handle
+
+Example usage:
+
+  % set xnm [xnm -parse -string "foo=>{bar=>baz}"]
+  % puts [xnm -handle $xnm -key foo:bar]
+  baz
+   
+=== gemtcl_get_last_command_log ===
+
+Returns concatinated contents of all strings sent by xmlrpc command 
+AppendToLog. The string is then reset. The string is also reset whenever
+a new command is added from the command line, or through the pressing of
+a gemtcl button.
+
+=== shift ===
+
+A simple tcl extension from my perl like background. Like in
+perl. Chops of the first member of an array and returns it. Typically
+used as follows:
+
+  set arg [shift args]
+
+=== head ===
+
+Shurtcut for "lindex 0". Useful for argument parsing.
+
+  # Parse command line flags
+  while {[regexp "^-" [head $args]]} {
+      set _ [shift args]
+      :
+  }
+
+== Remote control ==
+
+By turning on the tool xmlrpc, gemtcl is made to listen to the port
+8822 for remote xmlrpc commands. (Note that this is a security hole as it is
+possible for a remote attacker to connect to gemtcl and execute
+arbitrary tcl commands. It should therefore be used only for secure
+computers.)
+
+All commands receive a string as input and return a string as output.
+
+The following commands are currently supported: 
+
+=== Ping ===
+
+Checks communication. Returns pong.
+
+=== TclEval ===
+
+Evaluates the parameter given as argument.
+
+=== AppendToLog ===
+
+Prints string to the tcl window and adds it to the string retrievable
+through the tcl command +++gemtcl_get_last_command_log+++. This
+command is typically used by a remote controlled program to return log
+messages to the GemTcl.
+
