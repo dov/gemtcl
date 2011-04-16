@@ -56,14 +56,25 @@ static void init_glade_widgets(GladeXML *xml,
                                XnmValue *val);
 
 static bool is_input_widget(GladeWidgetInfo *cgwi);
-static bool is_button_but_not_check_button(GladeWidgetInfo *cgwi);
 typedef bool (*WidgetFilter)(GladeWidgetInfo *cgwi);
 static int
 cb_button_press_event(GtkWidget *button,
-                      GdkEventButton *event);
+                      GdkEventButton *event,
+                      gpointer user_data);
 void cb_entry_popup_populate (GtkEntry *entry,
                               GtkMenu  *arg1,
                               gpointer  user_data);
+void cb_menu_activated(GtkMenuItem *menuitem,
+                       gpointer     user_data);
+static void connect_to_widget_or_child(GtkWidget *widget,
+                                       const gchar *signal_name,
+                                       GCallback cb,
+                                       gpointer user_data);
+static gboolean has_button_in_parent_chain(GtkWidget *wdg);
+static GtkWidget *eventboxify(GtkWidget *wdg);
+static void container_widget_replace(GtkWidget *w_old,
+                                     GtkWidget *w_new);
+
 using namespace plis;
 
 %}
@@ -274,7 +285,7 @@ class Gem:Button:Box from Gtk:VBox
         }
         xnm_string += "buttons=> [\n";
         for (int i=0; i<(int)selfp->button_list->len; i++) {
-            GtkButton *bbb = GTK_BUTTON(g_ptr_array_index(selfp->button_list, i));
+            GtkWidget *bbb = GTK_WIDGET(g_ptr_array_index(selfp->button_list, i));
             slip script = gem_button_box_button_bless_get_script(bbb);
             script.s("\\\\", "\\\\","g");
             script.s("\"", "\\\"","g");
@@ -293,14 +304,21 @@ class Gem:Button:Box from Gtk:VBox
         for (int i=0; i<(int)selfp->glade_widget_list->len; i++) {
             const gchar *name = (gchar*)g_ptr_array_index(selfp->glade_widget_list, i);
             GtkWidget *widget = glade_xml_get_widget(selfp->xml, name);
+#if 0
             if (!GTK_IS_BUTTON(widget))
                 continue;
             if (GTK_IS_TOGGLE_BUTTON(widget))
                 continue;
+#endif
+            const char *script = gem_button_box_button_bless_get_script(widget);
 
-            slip script = gem_button_box_button_bless_get_script(GTK_BUTTON(widget));
-            script.s("\\\\", "\\\\","g");
-            script.s("\"", "\\\"","g");
+            if (!script)
+                continue;
+
+            
+            slip sscript(script);
+            sscript.s("\\\\", "\\\\","g");
+            sscript.s("\"", "\\\"","g");
 
             xnm_string += slipprintf(
                     "  {\n"
@@ -308,7 +326,7 @@ class Gem:Button:Box from Gtk:VBox
                     "    script => \"%s\"\n"
                     "  }\n",
                     name,
-                    script.c_str());
+                    sscript.c_str());
         }
         xnm_string += "]\n";
 
@@ -388,6 +406,7 @@ class Gem:Button:Box from Gtk:VBox
         if (!top_child_name) 
             return;
         selfp->xml = glade_xml_new(glade_file_path.c_str(), top_child_name, NULL);
+        fprintf(stderr, "Loaded the xml ok. Now trying to display it...\n");
         selfp->w_glade_widget = glade_xml_get_widget(selfp->xml, top_child_name);
 
         gtk_widget_hide(selfp->w_toolbar);
@@ -406,15 +425,20 @@ class Gem:Button:Box from Gtk:VBox
             const gchar *name = (gchar*)g_ptr_array_index(selfp->glade_widget_list, i);
             GtkWidget *widget = glade_xml_get_widget(selfp->xml, name);
 
-            if (GTK_IS_BUTTON(widget) 
+            if ((GTK_IS_BUTTON(widget) 
                 && !GTK_IS_CHECK_BUTTON(widget)
                 && !GTK_IS_TOGGLE_BUTTON(widget)
                 && !GTK_IS_OPTION_MENU(widget)
                 && !GTK_IS_COMBO_BOX(widget)
-                && !GTK_IS_FILE_CHOOSER_BUTTON(widget)) {
-                const gchar *label = gtk_button_get_label(GTK_BUTTON(widget));
+                && !GTK_IS_FILE_CHOOSER_BUTTON(widget)
+                )
+                || GTK_IS_RANGE(widget)) {
+                const gchar *label = NULL;
 
-                gem_button_box_button_bless(GTK_BUTTON(widget),
+                if (GTK_IS_BUTTON(widget))
+                    label = gtk_button_get_label(GTK_BUTTON(widget));
+
+                gem_button_box_button_bless(widget,
                                             label,
                                             "puts foo",
                                             GTK_WIDGET(self),
@@ -426,9 +450,24 @@ class Gem:Button:Box from Gtk:VBox
                 continue;
             }
 
-            gchar *name_label = g_strdup_printf("Name: %s", name);
+            gchar *name_label = g_strdup_printf("Copy name: %s", name);
             GtkWidget *menu_item =gtk_menu_item_new_with_label(name_label);
+
+            g_object_set_data_full(G_OBJECT(menu_item),
+                                   "name", g_strdup(name),
+                                   (GDestroyNotify)g_free);
+
+            g_signal_connect(G_OBJECT(menu_item), "activate",
+                             G_CALLBACK(cb_menu_activated), NULL);
+                             
             g_free(name_label);
+
+            // Put an entry box below images so that we can popup
+            if (GTK_IS_IMAGE(widget)
+                && !has_button_in_parent_chain(widget))  {
+                widget = eventboxify(widget);
+                gtk_widget_show(widget);
+            }
 
             if (GTK_IS_ENTRY(widget)) {
                 g_signal_connect(widget, "populate_popup",
@@ -437,15 +476,17 @@ class Gem:Button:Box from Gtk:VBox
             }
             else {
                 GtkWidget *menu = gtk_menu_new();
+
                 g_object_set_data(G_OBJECT(widget),
-                              "menu",
-                              menu);
+                                  "menu",
+                                  menu);
                 gtk_menu_shell_append(GTK_MENU_SHELL(menu),
                                       menu_item);
-    
-                g_signal_connect(widget, "button-press-event",
-                                 G_CALLBACK(cb_button_press_event),
-                                 NULL);
+
+                connect_to_widget_or_child(widget,
+                                           "button-press-event",
+                                           G_CALLBACK(cb_button_press_event),
+                                           menu);
             }
 
         }
@@ -511,7 +552,7 @@ class Gem:Button:Box from Gtk:VBox
             script = g_strdup("puts New");
 
         bbb = gtk_button_new_with_label(label_text);
-        gem_button_box_button_bless(GTK_BUTTON(bbb),
+        gem_button_box_button_bless(bbb,
                                     label_text,
                                     script,
                                     (GtkWidget*)self,
@@ -640,6 +681,9 @@ class Gem:Button:Box from Gtk:VBox
                 widget_text =  g_strdup_printf("%d", gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
             else if (GTK_IS_FILE_CHOOSER_BUTTON(widget))
                 widget_text = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(widget));
+            else if (GTK_IS_RANGE(widget))
+                widget_text = g_strdup_printf("%f",
+                                              gtk_range_get_value(GTK_RANGE(widget)));
         }
 
         return widget_text;
@@ -703,7 +747,6 @@ class Gem:Button:Box from Gtk:VBox
     {
         // Search for gem widgets for the name widget name
         // and return its value for entry widgets.
-        gchar *widget_text = NULL;
         GtkWidget *widget = glade_xml_get_widget(selfp->xml, widget_name);
 
         if (widget) {
@@ -753,7 +796,7 @@ static void cb_toolbutton_exec(GtkWidget *button,
     GemButtonBox *self = GEM_BUTTON_BOX(user_data);
     for (int i=0; i<(int)selfp->button_list->len; i++) {
         GtkButton *bbb = GTK_BUTTON(g_ptr_array_index(selfp->button_list, i));
-        g_string_append(all_cmds, gem_button_box_button_bless_get_script(bbb));
+        g_string_append(all_cmds, gem_button_box_button_bless_get_script(GTK_WIDGET(bbb)));
         g_string_append(all_cmds, "\n");
     }
     selfp->cmd_eval(all_cmds->str);
@@ -888,7 +931,7 @@ init_glade_widgets(GladeXML *xml,
         xnm_value_get_string(val, key + "script", &script);
         GtkWidget *widget = glade_xml_get_widget(xml, name);
         if (widget)
-            gem_button_box_button_bless_set_script(GTK_BUTTON(widget), script);
+            gem_button_box_button_bless_set_script(widget, script);
         g_free(name);
         g_free(script);
     }
@@ -924,14 +967,17 @@ static bool is_input_widget(GladeWidgetInfo *cgwi)
         || strcmp(cgwi->name, "GtkToggleButton")==0;
 }
 
-// Why isn't this called forc the gtkfilebutton and the
+// Why isn't this called force the gtkfilebutton and the
 // combobox buttons???
 static
 int cb_button_press_event (GtkWidget *widget,
-                           GdkEventButton *event)
+                           GdkEventButton *event,
+                           gpointer userdata)
 {
     GtkWidget *menu = (GtkWidget*)g_object_get_data(G_OBJECT(widget),
                                                     "menu");
+    if (userdata && !menu)
+        menu = (GtkWidget*)userdata;
 
     if (event->button == 3) {
         gtk_widget_grab_focus(widget);
@@ -949,7 +995,7 @@ void cb_entry_popup_populate (GtkEntry *entry,
                               GtkMenu  *menu,
                               gpointer  label)
 {
-    gchar *name_label = g_strdup_printf("Name: %s", (gchar*)label);
+    gchar *name_label = g_strdup_printf("Copy name: %s", (gchar*)label);
     GtkWidget *menu_item =gtk_menu_item_new_with_label(name_label);
     GtkWidget *menu_sep = gtk_menu_item_new();
     gtk_container_add(GTK_CONTAINER(menu_sep), gtk_hseparator_new());
@@ -957,7 +1003,132 @@ void cb_entry_popup_populate (GtkEntry *entry,
                            menu_sep);
     gtk_menu_shell_prepend(GTK_MENU_SHELL(menu),
                            menu_item);
+    g_signal_connect(G_OBJECT(menu_item), "activate",
+                     G_CALLBACK(cb_menu_activated), NULL);
+    g_object_set_data_full(G_OBJECT(menu_item),
+                           "name", g_strdup((gchar*)label),
+                           (GDestroyNotify)g_free);
+
     gtk_widget_show_all(GTK_WIDGET(menu));
+}
+
+void cb_menu_activated(GtkMenuItem *menuitem,
+                       gpointer     user_data)
+{
+    gchar *name = (gchar*)g_object_get_data(G_OBJECT(menuitem),
+                                            "name");
+    if (name) {
+        GdkAtom sel_list[3] = { GDK_SELECTION_PRIMARY,
+                                GDK_SELECTION_SECONDARY,
+                                GDK_SELECTION_CLIPBOARD };
+
+        for (int i=0; i<3; i++) {
+            GtkClipboard *clipboard = gtk_clipboard_get(sel_list[i]);
+            // Add the name to the clip board.
+            gtk_clipboard_set_text(clipboard, name, strlen(name));
+            gtk_clipboard_store(clipboard);
+        }
+    }
+}
+
+static void connect_to_widget_or_child(GtkWidget *widget,
+                                       const gchar *signal_name,
+                                       GCallback cb,
+                                       gpointer user_data)
+{
+
+    // Recurse for some selected containers...
+    if (GTK_IS_FILE_CHOOSER_BUTTON(widget)) {
+        GList* children =
+            gtk_container_get_children(GTK_CONTAINER(widget));
+        for (children = g_list_first(children); children; children =
+                 g_list_next(children)) {
+
+            connect_to_widget_or_child(GTK_WIDGET(children->data),
+                                       signal_name,
+                                       cb,
+                                       user_data);
+        }
+    }
+
+    if (GTK_IS_BUTTON(widget)
+        || !GTK_IS_CONTAINER(widget)
+        || GTK_IS_EVENT_BOX(widget))
+        g_signal_connect(widget, signal_name, cb, user_data);
+}
+
+// Check whether there is a button in the parent chain
+static gboolean has_button_in_parent_chain(GtkWidget *wdg)
+{
+    GtkWidget *pw = wdg;
+    while(pw) {
+        if (GTK_IS_BUTTON(pw))
+            return TRUE;
+        pw = gtk_widget_get_parent(pw);
+    }
+    return FALSE;
+}
+
+void container_widget_replace(GtkWidget *w_old,
+                              GtkWidget *w_new)
+{
+    guint n_properties;
+    GtkWidget *parent = gtk_widget_get_parent(w_old);
+    GParamSpec **pspec =
+        gtk_container_class_list_child_properties(G_OBJECT_GET_CLASS(G_OBJECT(parent)),
+                                                  &n_properties);
+    GValue *param_vals = (GValue*)g_new0(GValue, n_properties);
+    guint i;
+
+    for (i=0; i<n_properties; i++) {
+        g_value_init(&param_vals[i], pspec[i]->value_type);
+        gtk_container_child_get_property(GTK_CONTAINER(parent),
+                                         w_old,
+                                         pspec[i]->name,
+                                         &param_vals[i]);
+    }
+    
+    // Need to ref the old widget before it is removed
+    g_object_ref(w_old);
+    gtk_container_remove(GTK_CONTAINER(parent),
+                         w_old);
+
+    // Place the new widget in its place
+    gtk_container_add(GTK_CONTAINER(parent),
+                      w_new);
+
+    // Restore the properties
+    for (i=0; i<n_properties; i++) 
+        gtk_container_child_set_property(GTK_CONTAINER(parent),
+                                         w_new,
+                                         pspec[i]->name,
+                                         &param_vals[i]);
+
+    // Should the contents of pspec be freed?
+    g_free(pspec);
+    g_free(param_vals);
+}
+
+/** 
+ * Take as input a widget. The widget will be replaced "in-place"
+ * with a eventbox that contains the widget.
+ * 
+ * @param wdg 
+ * 
+ * @return 
+ */
+GtkWidget *eventboxify(GtkWidget *wdg)
+{
+    GtkWidget *w_eb = gtk_event_box_new();
+
+    gtk_event_box_set_visible_window(GTK_EVENT_BOX(w_eb),
+                                     FALSE);
+    container_widget_replace(wdg, w_eb);
+    gtk_container_add(GTK_CONTAINER(w_eb),
+                      wdg);
+    gtk_widget_show(wdg);
+    g_object_unref(wdg);
+    return w_eb;
 }
 
 %}

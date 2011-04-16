@@ -36,6 +36,13 @@ int xnm_value_get (XnmValue *xnm_value_tree,
   char *key_head, *key_tail;
   gboolean is_leaf, is_array;
 
+  // Getting an empty key is a noop
+  if (key[0] == '\0') {
+      *xnm_value = xnm_value_tree;
+      xnm_value_ref(*xnm_value);
+      return ret;
+  }
+  
   // Check if it is an endnode
   if (xnm_value_tree->type == XNM_STRING)
     {
@@ -535,6 +542,34 @@ xnm_value_get_array_length (XnmValue *xnm_value,
   ret = xnm_value_array->value.array->array->len;
 
   xnm_value_unref(xnm_value_array);
+
+  return ret;
+}
+
+int
+xnm_value_get_table_key_list (XnmValue *xnm_value,
+                              const char *key,
+                              // output
+                              const GPtrArray **key_list
+                              )
+{
+  int ret = 0;
+  XnmValue *xnm_value_table;
+
+  ret = xnm_value_get(xnm_value,
+                      key,
+                      /* output */
+                      &xnm_value_table);
+
+  if (ret != 0)
+    return ret;
+  
+  if (!xnm_value_table || xnm_value_table->type != XNM_TABLE)
+    return -1;
+
+  *key_list = xnm_table_get_key_list(xnm_value_table->value.table);
+
+  xnm_value_unref(xnm_value_table);
 
   return ret;
 }

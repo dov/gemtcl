@@ -35,8 +35,8 @@ subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	config.guess config.sub depcomp install-sh ltmain.sh missing \
-	ylwrap
+	compile config.guess config.sub depcomp install-sh ltmain.sh \
+	missing ylwrap
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -91,6 +91,7 @@ CYGPATH_W = @CYGPATH_W@
 DB2HTML = @DB2HTML@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -117,6 +118,7 @@ LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
+NMEDIT = @NMEDIT@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -185,9 +187,22 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = src doc
+SUBDIRS = src doc server-examples 
+EXTRA_DIST = lib/xmlrpc.tcl \
+	     examples/smiley.svg \
+             examples/glade-buttons.glade \
+             examples/glade-demo.glade \
+	     examples/glade-demo.gtf \
+	     examples/therm50.svg \
+	     examples/therm.svg \
+	     misc/gemtcl-logo-150.png \
+             misc/gemtcl-logo-64.png \
+             misc/gemtcl-logo.ico \
+             misc/gemtcl-logo.svg
+
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

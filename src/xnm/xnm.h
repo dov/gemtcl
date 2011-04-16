@@ -414,6 +414,23 @@ int
 xnm_value_get_values(XnmValue *xnm_value,
                      ...);
 
+
+/** 
+ * Get a list of all keys of a table.
+ * 
+ * @param xnm_value 
+ * @param key 
+ * @param key_list 
+ * 
+ * @return 
+ */
+int
+xnm_value_get_table_key_list (XnmValue *xnm_value,
+                              const char *key,
+                              // output
+                              const GPtrArray **key_list
+                              );
+
 /** 
  * Parse a string in XNM syntax.
  * 

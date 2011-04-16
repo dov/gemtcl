@@ -47,12 +47,11 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_gemtcl_OBJECTS = gemtcl-gemtcl.$(OBJEXT) \
-	gemtcl-gem-button-box.$(OBJEXT) \
-	gemtcl-gem-button-box-editor.$(OBJEXT) \
-	gemtcl-gem-button-box-button-bless.$(OBJEXT) \
-	gemtcl-gem-button-box-button-bless-editor.$(OBJEXT) \
-	gemtcl-xmlrpc-server.$(OBJEXT)
+am_gemtcl_OBJECTS = gemtcl.$(OBJEXT) gem-button-box.$(OBJEXT) \
+	gem-button-box-editor.$(OBJEXT) \
+	gem-button-box-button-bless.$(OBJEXT) \
+	gem-button-box-button-bless-editor.$(OBJEXT) \
+	xmlrpc-server.$(OBJEXT) xmlrpc-client.$(OBJEXT)
 gemtcl_OBJECTS = $(am_gemtcl_OBJECTS)
 am__DEPENDENCIES_1 =
 gemtcl_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -116,6 +115,7 @@ CYGPATH_W = @CYGPATH_W@
 DB2HTML = @DB2HTML@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DSYMUTIL = @DSYMUTIL@
 ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
@@ -142,6 +142,7 @@ LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
+NMEDIT = @NMEDIT@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -210,6 +211,7 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
+top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SUBDIRS = plis xnm
@@ -220,32 +222,32 @@ EXTRA_DIST = changelog_string.i logo_150_inline.i logo_64_inline.i \
 	gem-button-box-button-bless-editor-private.h \
 	gem-button-box-editor.cc gem-button-box-editor.h \
 	gem-button-box-editor-private.h
-BUILT_SOURCES = gem-button-box.gob.stamp \
-	gem-button-box-button-bless-editor.gob.stamp \
-	gem-button-box-editor.gob.stamp
-DISTCLEANFILES = gem-button-box.gob.stamp gem-button-box.cc \
-	gem-button-box.h gem-button-box-private.h \
-	gem-button-box-button-bless-editor.gob.stamp \
-	gem-button-box-button-bless-editor.cc \
+BUILT_SOURCES = 
+DISTCLEANFILES = gem-button-box.cc gem-button-box.h \
+	gem-button-box-private.h gem-button-box-button-bless-editor.cc \
 	gem-button-box-button-bless-editor.h \
 	gem-button-box-button-bless-editor-private.h \
-	gem-button-box-editor.gob.stamp gem-button-box-editor.cc \
-	gem-button-box-editor.h gem-button-box-editor-private.h
+	gem-button-box-editor.cc gem-button-box-editor.h \
+	gem-button-box-editor-private.h
 gemtcl_SOURCES = \
     gemtcl.cc \
     gem-button-box.cc \
     gem-button-box-editor.cc \
     gem-button-box-button-bless.cc \
     gem-button-box-button-bless-editor.cc \
-    xmlrpc-server.c
+    xmlrpc-server.c \
+    xmlrpc-client.c
 
 gemtcl_LDADD = $(PACKAGE_LIBS) 
 gemtcl_LDFLAGS = -Lplis -lplis -Lxnm -lxnm
-gemtcl_CPPFLAGS = $(PACKAGE_CFLAGS) -Iplis -Ixnm
-noinst_HEADERS = 
-gem_button_box_SOURCES = gem-button-box.gob gem-button-box.gob.stamp gem-button-box.cc gem-button-box.h gem-button-box-private.h
-gem_button_box_button_bless_editor_SOURCES = gem-button-box-button-bless-editor.gob gem-button-box-button-bless-editor.gob.stamp gem-button-box-button-bless-editor.cc gem-button-box-button-bless-editor.h gem-button-box-button-bless-editor-private.h
-gem_button_box_editor_SOURCES = gem-button-box-editor.gob gem-button-box-editor.gob.stamp gem-button-box-editor.cc gem-button-box-editor.h gem-button-box-editor-private.h
+INCLUDES = $(PACKAGE_CFLAGS) \
+           -I$(top_srcdir)/src/xnm \
+           -I$(top_srcdir)/src/plis 
+
+noinst_HEADERS = gem.h gnet_xmlrpc.h gem-button-box-button-bless.h
+gem_button_box_SOURCES = gem-button-box.cc gem-button-box.h gem-button-box-private.h
+gem_button_box_button_bless_editor_SOURCES = gem-button-box-button-bless-editor.cc gem-button-box-button-bless-editor.h gem-button-box-button-bless-editor-private.h
+gem_button_box_editor_SOURCES = gem-button-box-editor.cc gem-button-box-editor.h gem-button-box-editor-private.h
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -318,12 +320,13 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gemtcl-gem-button-box-button-bless.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gemtcl-gem-button-box-editor.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gemtcl-gem-button-box.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gemtcl-gemtcl.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gemtcl-xmlrpc-server.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gem-button-box-button-bless-editor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gem-button-box-button-bless.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gem-button-box-editor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gem-button-box.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gemtcl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xmlrpc-client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xmlrpc-server.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -346,20 +349,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-gemtcl-xmlrpc-server.o: xmlrpc-server.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gemtcl-xmlrpc-server.o -MD -MP -MF $(DEPDIR)/gemtcl-xmlrpc-server.Tpo -c -o gemtcl-xmlrpc-server.o `test -f 'xmlrpc-server.c' || echo '$(srcdir)/'`xmlrpc-server.c
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/gemtcl-xmlrpc-server.Tpo $(DEPDIR)/gemtcl-xmlrpc-server.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='xmlrpc-server.c' object='gemtcl-xmlrpc-server.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gemtcl-xmlrpc-server.o `test -f 'xmlrpc-server.c' || echo '$(srcdir)/'`xmlrpc-server.c
-
-gemtcl-xmlrpc-server.obj: xmlrpc-server.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gemtcl-xmlrpc-server.obj -MD -MP -MF $(DEPDIR)/gemtcl-xmlrpc-server.Tpo -c -o gemtcl-xmlrpc-server.obj `if test -f 'xmlrpc-server.c'; then $(CYGPATH_W) 'xmlrpc-server.c'; else $(CYGPATH_W) '$(srcdir)/xmlrpc-server.c'; fi`
-@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/gemtcl-xmlrpc-server.Tpo $(DEPDIR)/gemtcl-xmlrpc-server.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='xmlrpc-server.c' object='gemtcl-xmlrpc-server.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gemtcl-xmlrpc-server.obj `if test -f 'xmlrpc-server.c'; then $(CYGPATH_W) 'xmlrpc-server.c'; else $(CYGPATH_W) '$(srcdir)/xmlrpc-server.c'; fi`
-
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
@@ -380,76 +369,6 @@ gemtcl-xmlrpc-server.obj: xmlrpc-server.c
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
-
-gemtcl-gemtcl.o: gemtcl.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gemtcl.o -MD -MP -MF $(DEPDIR)/gemtcl-gemtcl.Tpo -c -o gemtcl-gemtcl.o `test -f 'gemtcl.cc' || echo '$(srcdir)/'`gemtcl.cc
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gemtcl.Tpo $(DEPDIR)/gemtcl-gemtcl.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gemtcl.cc' object='gemtcl-gemtcl.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gemtcl.o `test -f 'gemtcl.cc' || echo '$(srcdir)/'`gemtcl.cc
-
-gemtcl-gemtcl.obj: gemtcl.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gemtcl.obj -MD -MP -MF $(DEPDIR)/gemtcl-gemtcl.Tpo -c -o gemtcl-gemtcl.obj `if test -f 'gemtcl.cc'; then $(CYGPATH_W) 'gemtcl.cc'; else $(CYGPATH_W) '$(srcdir)/gemtcl.cc'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gemtcl.Tpo $(DEPDIR)/gemtcl-gemtcl.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gemtcl.cc' object='gemtcl-gemtcl.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gemtcl.obj `if test -f 'gemtcl.cc'; then $(CYGPATH_W) 'gemtcl.cc'; else $(CYGPATH_W) '$(srcdir)/gemtcl.cc'; fi`
-
-gemtcl-gem-button-box.o: gem-button-box.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box.o -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box.Tpo -c -o gemtcl-gem-button-box.o `test -f 'gem-button-box.cc' || echo '$(srcdir)/'`gem-button-box.cc
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gem-button-box.Tpo $(DEPDIR)/gemtcl-gem-button-box.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gem-button-box.cc' object='gemtcl-gem-button-box.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box.o `test -f 'gem-button-box.cc' || echo '$(srcdir)/'`gem-button-box.cc
-
-gemtcl-gem-button-box.obj: gem-button-box.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box.obj -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box.Tpo -c -o gemtcl-gem-button-box.obj `if test -f 'gem-button-box.cc'; then $(CYGPATH_W) 'gem-button-box.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box.cc'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gem-button-box.Tpo $(DEPDIR)/gemtcl-gem-button-box.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gem-button-box.cc' object='gemtcl-gem-button-box.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box.obj `if test -f 'gem-button-box.cc'; then $(CYGPATH_W) 'gem-button-box.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box.cc'; fi`
-
-gemtcl-gem-button-box-editor.o: gem-button-box-editor.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-editor.o -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-editor.Tpo -c -o gemtcl-gem-button-box-editor.o `test -f 'gem-button-box-editor.cc' || echo '$(srcdir)/'`gem-button-box-editor.cc
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gem-button-box-editor.Tpo $(DEPDIR)/gemtcl-gem-button-box-editor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gem-button-box-editor.cc' object='gemtcl-gem-button-box-editor.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-editor.o `test -f 'gem-button-box-editor.cc' || echo '$(srcdir)/'`gem-button-box-editor.cc
-
-gemtcl-gem-button-box-editor.obj: gem-button-box-editor.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-editor.obj -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-editor.Tpo -c -o gemtcl-gem-button-box-editor.obj `if test -f 'gem-button-box-editor.cc'; then $(CYGPATH_W) 'gem-button-box-editor.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-editor.cc'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gem-button-box-editor.Tpo $(DEPDIR)/gemtcl-gem-button-box-editor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gem-button-box-editor.cc' object='gemtcl-gem-button-box-editor.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-editor.obj `if test -f 'gem-button-box-editor.cc'; then $(CYGPATH_W) 'gem-button-box-editor.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-editor.cc'; fi`
-
-gemtcl-gem-button-box-button-bless.o: gem-button-box-button-bless.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-button-bless.o -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-button-bless.Tpo -c -o gemtcl-gem-button-box-button-bless.o `test -f 'gem-button-box-button-bless.cc' || echo '$(srcdir)/'`gem-button-box-button-bless.cc
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gem-button-box-button-bless.Tpo $(DEPDIR)/gemtcl-gem-button-box-button-bless.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gem-button-box-button-bless.cc' object='gemtcl-gem-button-box-button-bless.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-button-bless.o `test -f 'gem-button-box-button-bless.cc' || echo '$(srcdir)/'`gem-button-box-button-bless.cc
-
-gemtcl-gem-button-box-button-bless.obj: gem-button-box-button-bless.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-button-bless.obj -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-button-bless.Tpo -c -o gemtcl-gem-button-box-button-bless.obj `if test -f 'gem-button-box-button-bless.cc'; then $(CYGPATH_W) 'gem-button-box-button-bless.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-button-bless.cc'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gem-button-box-button-bless.Tpo $(DEPDIR)/gemtcl-gem-button-box-button-bless.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gem-button-box-button-bless.cc' object='gemtcl-gem-button-box-button-bless.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-button-bless.obj `if test -f 'gem-button-box-button-bless.cc'; then $(CYGPATH_W) 'gem-button-box-button-bless.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-button-bless.cc'; fi`
-
-gemtcl-gem-button-box-button-bless-editor.o: gem-button-box-button-bless-editor.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-button-bless-editor.o -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Tpo -c -o gemtcl-gem-button-box-button-bless-editor.o `test -f 'gem-button-box-button-bless-editor.cc' || echo '$(srcdir)/'`gem-button-box-button-bless-editor.cc
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Tpo $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gem-button-box-button-bless-editor.cc' object='gemtcl-gem-button-box-button-bless-editor.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-button-bless-editor.o `test -f 'gem-button-box-button-bless-editor.cc' || echo '$(srcdir)/'`gem-button-box-button-bless-editor.cc
-
-gemtcl-gem-button-box-button-bless-editor.obj: gem-button-box-button-bless-editor.cc
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-button-bless-editor.obj -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Tpo -c -o gemtcl-gem-button-box-button-bless-editor.obj `if test -f 'gem-button-box-button-bless-editor.cc'; then $(CYGPATH_W) 'gem-button-box-button-bless-editor.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-button-bless-editor.cc'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Tpo $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='gem-button-box-button-bless-editor.cc' object='gemtcl-gem-button-box-button-bless-editor.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-button-bless-editor.obj `if test -f 'gem-button-box-button-bless-editor.cc'; then $(CYGPATH_W) 'gem-button-box-button-bless-editor.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-button-bless-editor.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -746,8 +665,11 @@ uninstall-am: uninstall-binPROGRAMS
 
 # How do I make this happen at autoconf/automake time and not at compile time?
 %.gob.stamp: %.gob
-	gob2 --for-cpp $<
+	gob2 --no-touch --for-cpp $<
 	@touch $@ 
+
+%cc %h %-private.h: %.gob
+	gob2 --for-cpp $<
 
 logo_150_inline.i: ../misc/gemtcl-logo-150.png
 	gdk-pixbuf-csource --name=logo_150_inline $< > $@

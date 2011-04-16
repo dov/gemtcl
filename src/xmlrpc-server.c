@@ -44,6 +44,8 @@ typedef struct {
 static void ob_server_func (GServer* server, GConn* conn, gpointer user_data);
 static void ob_client_func (GConn* conn, GConnEvent* event, 
                             gpointer user_data);
+gchar *create_fault_response_string(int fault_code,
+                                    const gchar *reply);
 gchar *create_response_string(const gchar *reply);
 
 int extract_xmlrpc_request(const gchar *str,
@@ -120,7 +122,7 @@ ob_client_func (GConn* conn, GConnEvent* event, gpointer user_data)
             /* Extract command name */
             gchar *command_name=NULL, *parameter=NULL;
             gchar *response=NULL;
-            command_hash_value_t *command_val;
+            command_hash_value_t *command_val = NULL;
             
             extract_xmlrpc_request(req_string->str,
                                    /* output */
@@ -129,10 +131,12 @@ ob_client_func (GConn* conn, GConnEvent* event, gpointer user_data)
                                    );
 
             /* Call the callback */
-            command_val = g_hash_table_lookup(xmlrpc_server->command_hash,
-                                              command_name);
+            if (command_name)
+              command_val = g_hash_table_lookup(xmlrpc_server->command_hash,
+                                                command_name);
             if (!command_val)
-              response = create_response_string("No such method!");
+              response = create_fault_response_string(-2,
+                                                      "No such method!");
             else if (command_val->async_callback)
               {
                 (*command_val->async_callback)((GNetXmlRpcServer*)xmlrpc_server,
@@ -144,13 +148,17 @@ ob_client_func (GConn* conn, GConnEvent* event, gpointer user_data)
             else
               {
                 gchar *reply;
-                (*command_val->callback)((GNetXmlRpcServer*)xmlrpc_server,
+                int ret = (*command_val->callback)((GNetXmlRpcServer*)xmlrpc_server,
                                          command_name,
                                          parameter,
                                          command_val->user_data,
                                          /* output */
                                          &reply);
-                response = create_response_string(reply);
+                if (ret == 0)
+                  response = create_response_string(reply);
+                else
+                  response = create_fault_response_string(-1,
+                                                          reply);
                 g_free(reply);
               }
 
@@ -270,63 +278,43 @@ int extract_xmlrpc_request(const gchar *str,
                            gchar **parameter
                            )
 {
-  int len = strlen(str);
-  gchar *method_name_start, *method_name_end;
-  gchar *param_name_start, *param_name_end;
   GString *param_string = g_string_new("");
+  GError *error = NULL;
+  GRegex *re;
+  GMatchInfo *match_info;
   const gchar *p;
+
+  re = g_regex_new("<methodName>(\\S*)</methodName>"
+                   "(?:.*<param>\\s*"
+                   "<value>\\s*"
+                   "<string>\\s*"
+                   "(.*?)"
+                   "</string>)?"
+                   ".*</methodCall>"
+                   ,
+                   G_REGEX_DOTALL,
+                   0,
+                   &error);
+
+  if (!g_regex_match(re,
+                     str,
+                     0,
+                     &match_info)) {
+      g_regex_unref(re);
+      return -1;
+  }
+
+  *command_name = g_match_info_fetch(match_info, 1);
+  gchar *param_name_raw = g_match_info_fetch(match_info, 2);
+  g_match_info_free(match_info);
+  g_regex_unref(re);
   
-  method_name_start = g_strstr_len(str,
-                                   len,
-                                   "<methodName>");
-  if (method_name_start == NULL)
-    return -1;
-  method_name_start += strlen("<methodName>");
-
-  method_name_end = g_strstr_len(method_name_start,
-                                 strlen(method_name_start),
-                                 "</methodName>");
-  if (method_name_end == NULL)
-    return -1;
-
-  *command_name = g_strndup(method_name_start,
-                            method_name_end - method_name_start);
-                                   
-  param_name_start = g_strstr_len(str,
-                                  len,
-                                  "<param><value><string>");
-
-  if (param_name_start == NULL) {
-      param_name_start = g_strstr_len(str,
-                                      len,
-                                      "<param><value>");
-      if (param_name_start == NULL) {
-      }
-      else {
-          param_name_start += strlen("<param><value>");
-          param_name_end = g_strstr_len(param_name_start,
-                                        strlen(param_name_start),
-                                        "</value>");
-      }
-
-  }
-  else {
-      param_name_start += strlen("<param><value><string>");
-      param_name_end = g_strstr_len(param_name_start,
-                                    strlen(param_name_start),
-                                    "</string>");
-  }
-  if (method_name_end == NULL)
-    return -1;
-
   /* Decode and build parameter */
-  if (param_name_start) {
-      p = param_name_start;
+  p = param_name_raw;
+  if (p && strlen(p)) {
       while (*p)
         {
           gchar c = *p++;
-          if (p > param_name_end)
-            break;
     
           if (c == '&')
             {
@@ -364,40 +352,37 @@ int extract_xmlrpc_request(const gchar *str,
   }
   else
       *parameter = NULL;
-    
+
+  if (param_name_raw)
+    g_free(param_name_raw);
+
   return 0;
                                    
 }
 
-gchar *create_response_string(const gchar *reply)
+void append_and_encode_string(GString *res,
+                              const gchar *s)
 {
-  GString *response_string = g_string_new("");
-  GString *content_string = g_string_new("");
-  gchar *res;
-  const gchar *p;
-
-  g_string_append(content_string,
-                  "<?xml version=\"1.0\"?> <methodResponse> <params> <param> <value><string>");
-
-  /* Encode and add the reply */
-  p=reply;
+  const gchar *p = s;
   while(*p) {
-      gchar c = *p++;
-      switch (c)
-        {
-        case '&' : g_string_append(content_string, "&amp;"); break;
-        case '<': g_string_append(content_string, "&lt;"); break;
-        case '>': g_string_append(content_string, "&gt;"); break;
-        default:
-          g_string_append_c(content_string, c);
-        }
+    gchar c = *p++;
+    switch (c)
+      {
+      case '&' : g_string_append(res, "&amp;"); break;
+      case '<': g_string_append(res, "&lt;"); break;
+      case '>': g_string_append(res, "&gt;"); break;
+      default:
+        g_string_append_c(res, c);
+      }
   }
+}
 
-  g_string_append(content_string,
-                  "</string></value> </param> </params> </methodResponse>\n");
-
-
-  g_string_append_printf(response_string,
+gchar *cat_header_contents(GString *content_string)
+{
+  GString *msg_string = g_string_new("");
+  gchar *msg_res = NULL;
+  
+  g_string_append_printf(msg_string,
                          "HTTP/1.1 200 OK\n"
                          "Connection: close\n"
                          "Content-Length: %d\n"
@@ -410,11 +395,63 @@ gchar *create_response_string(const gchar *reply)
                          content_string->str
                          );
 
+  msg_res = msg_string->str;
+  g_string_free(msg_string, FALSE);
+
+  return msg_res;
+}
+
+gchar *create_fault_response_string(int fault_code,
+                                    const gchar *reply)
+{
+  GString *content_string = g_string_new("");
+  gchar *res;
+
+  g_string_append_printf(content_string,
+                         "<?xml version=\"1.0\"?>\n"
+                         "<methodResponse>\n"
+                         "  <fault>\n"
+                         "    <value>\n"
+                         "      <struct>\n"
+                         "        <member>\n"
+                         "          <name>faultCode</name>\n"
+                         "          <value><int>%d</int></value>\n"
+                         "        </member>\n"
+                         "        <member>\n"
+                         "          <name>faultString</name>\n"
+                         "          <value><string>",
+                         fault_code);
+
+  append_and_encode_string(content_string, reply);
+  g_string_append(content_string,
+                  "</string></value>\n"
+                  "        </member>\n"
+                  "      </struct>\n"
+                  "    </value>\n"
+                  "  </fault>\n"
+                  "</methodResponse>\n"
+                  );
+
+  res = cat_header_contents(content_string);
   g_string_free(content_string, TRUE);
 
-  res = response_string->str;
+  return res;
+}
 
-  g_string_free(response_string, FALSE);
+gchar *create_response_string(const gchar *reply)
+{
+  GString *content_string = g_string_new("");
+  gchar *res;
+
+  g_string_append(content_string,
+                  "<?xml version=\"1.0\"?> <methodResponse> <params> <param> <value><string>");
+
+  append_and_encode_string(content_string, reply);
+  g_string_append(content_string,
+                  "</string></value> </param> </params> </methodResponse>\n");
+
+  res = cat_header_contents(content_string);
+  g_string_free(content_string, TRUE);
 
   return res;
 }

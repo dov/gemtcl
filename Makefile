@@ -35,8 +35,8 @@ subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	config.guess config.sub depcomp install-sh ltmain.sh missing \
-	ylwrap
+	compile config.guess config.sub depcomp install-sh ltmain.sh \
+	missing ylwrap
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -91,6 +91,7 @@ CYGPATH_W = echo
 DB2HTML = true
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
+DSYMUTIL = 
 ECHO = echo
 ECHO_C = 
 ECHO_N = -n
@@ -101,8 +102,8 @@ F77 = gfortran
 FFLAGS = -g -O2
 GEMTCL_PACKAGES = gtk+-2.0 gobject-2.0 gmodule-2.0 libglade-2.0 gnet-2.0 gtksourceview-2.0
 GREP = /bin/grep
-GTK_CFLAGS = -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include  
-GTK_LIBS = -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgdk_pixbuf-2.0 -lpangocairo-1.0 -lpango-1.0 -lcairo -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0  
+GTK_CFLAGS = -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12  
+GTK_LIBS = -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lpangocairo-1.0 -lcairo -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lglib-2.0  
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -117,12 +118,13 @@ LTLIBOBJS =
 MAINT = #
 MAKEINFO = ${SHELL} /archive/svnwork/gemtcl/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
+NMEDIT = 
 OBJEXT = o
 PACKAGE = gemtcl
 PACKAGE_BUGREPORT = 
 PACKAGE_CFLAGS = 
-PACKAGE_LIBS = -pthread -Wl,--export-dynamic -L/usr/local/lib -lglade-2.0 -lxml2 -lgnet-2.0 -lgthread-2.0 -lgtksourceview-2.0 -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgdk_pixbuf-2.0 -lpangocairo-1.0 -lpango-1.0 -lcairo -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0   -lpcre -ltcl
-PACKAGE_CFLAGS=-pthread -I/usr/local/include/gnet-2.0 -I/usr/local/lib/gnet-2.0/include/ -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/libglade-2.0 -I/usr/include/libxml2 -I/usr/include/gtksourceview-2.0  
+PACKAGE_LIBS = -pthread -Wl,--export-dynamic -L/usr/local/lib -lglade-2.0 -lxml2 -lgnet-2.0 -lgthread-2.0 -lgtksourceview-2.0 -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lpangocairo-1.0 -lcairo -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lglib-2.0   -lpcre -ltcl
+PACKAGE_CFLAGS=-pthread -I/usr/local/include/gnet-2.0 -I/usr/local/lib/gnet-2.0/include/ -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/include/libglade-2.0 -I/usr/include/libxml2 -I/usr/include/gtksourceview-2.0  
 PACKAGE_NAME = 
 PACKAGE_STRING = 
 PACKAGE_TARNAME = 
@@ -134,7 +136,7 @@ SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = strip
-VERSION = 0.1.26
+VERSION = 0.1.33
 YACC = bison -y
 YFLAGS = 
 abs_builddir = /archive/svnwork/gemtcl
@@ -186,9 +188,22 @@ sharedstatedir = ${prefix}/com
 srcdir = .
 sysconfdir = ${prefix}/etc
 target_alias = 
+top_build_prefix = 
 top_builddir = .
 top_srcdir = .
-SUBDIRS = src doc
+SUBDIRS = src doc server-examples 
+EXTRA_DIST = lib/xmlrpc.tcl \
+	     examples/smiley.svg \
+             examples/glade-buttons.glade \
+             examples/glade-demo.glade \
+	     examples/glade-demo.gtf \
+	     examples/therm50.svg \
+	     examples/therm.svg \
+	     misc/gemtcl-logo-150.png \
+             misc/gemtcl-logo-64.png \
+             misc/gemtcl-logo.ico \
+             misc/gemtcl-logo.svg
+
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

@@ -7,8 +7,21 @@ Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005,
 This file is free documentation; the Free Software Foundation gives
 unlimited permission to copy, distribute and modify it.
 
-Basic Installation
-==================
+This program may be compiled with either scons or through configure.
+
+To compile with scons
+=====================
+
+Type "scons" in the top directory.
+
+Building for windows
+====================
+
+To build an installation executables for Windows, do "scons mingw=1". 
+But most likely only I have the correct paths for making it work.
+
+Basic Installation with configure
+=================================
 
 Briefly, the shell commands `./configure; make; make install' should
 configure, build, and install this package.  The following

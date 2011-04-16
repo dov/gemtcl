@@ -33,8 +33,7 @@ def create_version(env, target, source):
     out.write("#define VERSION \"" + env['VER'] + "\"\n")
     out.close()
 
-
-env.Command("configure.h",
+env.Command("config.h",
             ["SConstruct"],
             create_version)
     
@@ -46,13 +45,15 @@ if ARGUMENTS.get('mingw', 0):
     env['PKGCONFIG'] = "PKG_CONFIG_PATH=/usr/local/mingw32/lib/pkgconfig pkg-config"
     env['OBJSUFFIX']=".obj"
     env['PROGSUFFIX'] = ".exe"
-    env['CROOT'] = "z:\\dosc"
+    env['CROOT'] = "/home/dov/.wine/drive_c/"
     env['PREFIX'] = "z:\\usr\\local\\mingw32"
     env['PKGGTKSOURCEVIEW'] = "gtksourceview-1.0"
+    env['GLADESRC'] = "z:\\archive\\svnwork\\glade3"
 
     env.Command("gemtcl.wine.nsi",
                 ["gemtcl.nsi.in",
-                 "SConstruct"
+                 "SConstruct",
+                 "configure.in"
                 ],
                 template_fill
                 )
@@ -68,18 +69,20 @@ if ARGUMENTS.get('mingw', 0):
                 ["unix2dos < COPYING > COPYING.dos"])
     
     env.Command("InstallGemtcl-" + env['VER'] + ".exe",
-                ["src/gemtcl.exe", "gemtcl.wine.nsi"],
+                ["src",
+                 "server-examples",
+                 "gemtcl.wine.nsi"],
                 ["wine \"${CROOT}\Program Files\NSIS\makensis.exe\" gemtcl.wine.nsi"])
     res = env.Command("gemtcl.res.o",
                       ["gemtcl.rc",
-                       "gemtcl-logo.ico"
+                       "misc/gemtcl-logo.ico"
                       ],
                       ["/usr/local/mingw32/bin/mingw32-windres gemtcl.rc gemtcl.res.o"])
 
     env.Append(CPPDEFINES=['GTKSOURCEVIEW1'],
                CPPPATH=["/usr/local/mingw32/include"],
                LIBPATH=["/usr/local/mingw32/lib"],
-               LIBS = ['tcl84']
+               LIBS = ['tcl85']
                )
 else:
     # Posix by default
@@ -95,8 +98,11 @@ env.Command("README",
             template_fill
             )
 
+print(env["PKGCONFIG"], "--cflags --libs gtk+-2.0 gthread-2.0 libpcre ", env["PKGGTKSOURCEVIEW"], "libglade-2.0 gnet-2.0")
 env.ParseConfig("${PKGCONFIG} --cflags --libs gtk+-2.0 gthread-2.0 libpcre ${PKGGTKSOURCEVIEW} libglade-2.0 gnet-2.0")
 
 SConscript(['src/SConscript',
-            'doc/SConscript'],
+            'doc/SConscript',
+            'server-examples/SConscript'
+            ],
            exports='env')

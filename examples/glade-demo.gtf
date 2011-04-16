@@ -1,4 +1,4 @@
-name => "VFMove"
+name => "GemTcl example"
 use_glade => 1
 glade_filename => "glade-demo.glade"
 buttons=> [

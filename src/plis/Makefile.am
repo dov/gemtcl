@@ -1,4 +1,4 @@
-lib_LIBRARIES = libplis.a
+noinst_LIBRARIES = libplis.a
 
 libplis_a_SOURCES = plis.cc
 

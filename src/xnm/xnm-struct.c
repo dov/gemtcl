@@ -768,6 +768,11 @@ void xnm_table_set_key_value(XnmTable *xnm_table,
   xnm_value_ref(value);
 }
 
+const GPtrArray *xnm_table_get_key_list(XnmTable *xnm_table)
+{
+    return xnm_table->key_order;
+}
+
 char *xnm_table_export_to_string(XnmTable *xnm_table)
 {
   GString *exported_string = g_string_new("");

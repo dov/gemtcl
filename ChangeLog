@@ -1,3 +1,85 @@
+2009-05-26  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gem-button-box.gob : Solved problem of displaying names
+	for GtkImage.
+
+	* gem-button-box.gob : Solved problem for displaying name
+	label for GtkFileChooserButton.
+
+2009-05-19  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gem-button-box.gob : Made choosing the name of a widget in
+	a menu copy the name to the clip board.
+
+2009-03-13  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* configure.in : Released Windows bug fix version 0.1.31
+
+	* server-examples/microscope-server.c : Added searching for
+	ghostscript in the systems path.
+
+	* gemtcl.nsi.in : Added tm.tcl and clock.tcl that are part of
+	tcl8.5 standard library.
+
+	* gemtcl.nsi.in : Added some missing example files and doc directory
+	for windows.
+
+	* SConstruct : Updated glade to latest svn version.
+
+2009-02-11  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* SConstruct : Replaced glade version to 3.5.7 for windows
+	installer.
+
+	* configure.in : Bumped version to 0.1.31
+
+2009-01-29  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* gemtcl.cc : Moved lib files of exe from lib/ to lib/tcl .
+
+	* gem-button-box-editor.gob : Added a [Launch glade] button next
+	to the glade file name.
+
+	* configure.in : Bumped version to 0.1.30
+
+2008-12-30  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* configure.in : Bumped version to 0.1.29 .
+
+	* gemtcl.cc : Fixed mess when closing button boxes.
+
+	* gemtcl.cc : Fixed non-initiation of connect variable in
+	xmlrpc client.
+
+2008-12-29  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* configure.in : Bumped version to 0.1.28 .
+
+	* gemtcl.cc : Fixed broken menu tool for activating xmlrpc
+	server. Added log messages.
+
+	* gemtcl.cc : Fixed unitialized variable xmlrpc server that
+	caused crash under windows.
+
+2008-12-25  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+	* doc/manual.txt, doc/tutorial.txt : Updated to reflect the
+	latest changes.
+
+	* src/xnm/Makefile.am, src/plis/Makefile.am : Made libraries
+	non-installed.
+
+	* src/gemtcl.c : Implemented xnm option -keylist to get list
+	of keys in a xnm table.
+
+	* src/gemtcl.c : Implemented retained xnm object through new
+	-parse, -handle, and -close options.
+
+	* src/gemtcl.c : Added integrated xmlrpc client through tcl
+	command "gemtcl_xmlrcp_client".
+
+	* src/xmlrcp-server.c : Updated to regexp based version.
+
 2008-09-20  Dov Grobgeld  <dov.grobgeld@gmail.com>
 
 	* gemtcl.cc, gem-button-box.cc : Added new commands
@@ -35,7 +117,7 @@
 
 	* gemtcl.cc: Made size of window sticky.
 
-2008-06-12  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+2008-06-12  Dov Grobgeld  <dov.grobgeld@gmail.com>
 
 	* Released version 0.1.20
 
@@ -43,7 +125,7 @@
 
 	* Added lassign to additional tcl statements.
 
-2008-06-11  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+2008-06-11  Dov Grobgeld  <dov.grobgeld@gmail.com>
 
 	* Added option for setting combo boxes.
 
@@ -55,19 +137,19 @@
 
 	* Added xmlrpc connections, e.g. for labview and Quality Center.
 
-2007-09-16  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+2007-09-16  Dov Grobgeld  <dov.grobgeld@gmail.com>
 
 	* Released version 0.1.8
 
 	* gem-button-box.gob: Erased ugly h-separator at the
 	bottom of the screen.
 
-2007-09-10  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+2007-09-10  Dov Grobgeld  <dov.grobgeld@gmail.com>
 
 	* gemtcl.cc: Fixed bug that caused cursor to jump to end 
 	of line when entering a first character on the line.
 
-2007-09-09  Dov Grobgeld  <dov.grobgeld@orbotech.com>
+2007-09-09  Dov Grobgeld  <dov.grobgeld@gmail.com>
 	
 	* Released version 0.1.7
 

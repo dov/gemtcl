@@ -4,11 +4,6 @@
 //  Dov Grobgeld <dov.grobgeld@gmail.com>
 //  Fri Mar 23 09:47:34 2007
 //
-//  Implementation notes:
-//    - The w_button_box_vbox contains two widgets: the notebook on
-//      top and the widget being displayed at the bottom. Since the
-//      latter is the last widget shown in its container, we can
-//      remove it an put another widget there when switching pages.
 //----------------------------------------------------------------------
 
 #include <string>
@@ -18,6 +13,7 @@
 #include <gdk/gdkkeysyms.h>
 #include <tcl.h>
 #include <string.h>
+#include <glade/glade.h>
 #include "plis.h"
 #include "gem-button-box.h"
 #include "gem-button-box-editor.h"
@@ -147,7 +143,7 @@ static GtkItemFactoryEntry menu_items[] = {
     { "/Edit/Preferences",   NULL,         0,       0, "<StockItem>", GTK_STOCK_PREFERENCES },
     { "/_Tools",		 NULL,	       0,		      0, "<Branch>" },
     { "/_Tools/_History",  NULL, (GtkItemFactoryCallback)cb_menu_tools_history,   0, "<Item>" },
-    { "/_Tools/_XmlRpc",  NULL, (GtkItemFactoryCallback)cb_menu_tools_xmlrpc,       0, "<CheckItem>" },
+    { "/_Tools/_XmlRpc Server",  NULL, (GtkItemFactoryCallback)cb_menu_tools_xmlrpc,       0, "<CheckItem>" },
     { "/_View",		 NULL,	       0,		      0, "<Branch>" },
     { "/_View/_ButtonBox",  NULL, (GtkItemFactoryCallback)cb_toggle_view_button_box,       0, "<CheckItem>", 0 },
     { "/_Help",		 NULL,	       0,		      3, "<LastBranch>" },
@@ -184,7 +180,7 @@ static string tcl_eval_string;
 static string button_box_tcl_string="";
 vector<GtkWidget*> button_box_list;
 slip last_image_path;
-static GNetXmlRpcServer *xmlrpc_server;
+static GNetXmlRpcServer *xmlrpc_server = NULL;
 GConn *xmlrpc_handle = NULL;
 double window_width=800, window_height=600;
 slip settings_file;
@@ -951,18 +947,19 @@ void create_widgets()
     gtk_widget_show_all(w_window);
 }
 
-static void close_xmlrpc()
+static void close_xmlrpc_server()
 {
-    gnet_xmlrpc_server_delete(xmlrpc_server);
+    if (xmlrpc_server)
+        gnet_xmlrpc_server_delete(xmlrpc_server);
     xmlrpc_server = NULL;
 }
 
-static int create_xmlrpc(int port)
+static int create_xmlrpc_server(int port)
 {
     if (port < 0)
         port = 8822; // Default port
     if (xmlrpc_server)
-        close_xmlrpc();
+        close_xmlrpc_server();
 
     // Create the xmlrpc server
     xmlrpc_server = gnet_xmlrpc_server_new(port);
@@ -1109,17 +1106,6 @@ static gboolean cb_idle_gemtcl_show_hide(gpointer user_data)
     return FALSE;
 }
 
-static gboolean cb_idle_gemtcl_serve(gpointer user_data)
-{
-#ifdef WIN32
-    SetEvent(tcl_eval_mutex);
-#else            
-    g_mutex_unlock(tcl_eval_mutex);
-#endif
-    
-    return FALSE;
-}
-
 static int tcl_gemtcl_get(ClientData clientData,
                        Tcl_Interp *interp,
                        int argc, const char *argv[])
@@ -1221,6 +1207,10 @@ static int tcl_gemtcl_xnm(ClientData clientData,
     bool do_ref = false;
     bool do_keylist = false;
     bool do_quiet = false;
+    bool do_parse = false;
+    bool do_close = false;
+    XnmValue *val = NULL;
+    slip obj_serz;
     
     while (argp < argc && argv[argp][0] == '-') {
 	slip S_ = argv[argp++];
@@ -1230,7 +1220,7 @@ static int tcl_gemtcl_xnm(ClientData clientData,
                 "xnm - Parse strings in the xnm syntax\n"
                 "\n"
                 "Syntax:\n"
-                "    xnm -get [-file file] [-string s] [-key key] [-len]\n"
+                "    xnm -get [-handle handle] [-file file] [-string s] [-key key] [-len]\n"
                 "\n"
                 "Options:\n"
                 "    -file file       Filename of file to parse\n"
@@ -1239,6 +1229,9 @@ static int tcl_gemtcl_xnm(ClientData clientData,
                 "    -len             Return length of an array. Returns -1 for non-arrays.\n"
                 "    -ref             Returns type of value or under if not defined.\n"
                 "    -keylist         Return a list of keys for a table.\n"
+                "    -parse           Parse and return handle\n"
+                "    -handle h        Preparsed object\n"
+                "    -close           Close a handle\n"
                 ;
             Tcl_AppendResult(tcl, res.c_str(), NULL);
             return 0;
@@ -1252,6 +1245,18 @@ static int tcl_gemtcl_xnm(ClientData clientData,
             // Ugly hack... But should be effective
             if (xnm_string.length() == 0)
                 xnm_string = " ";
+            continue;
+        }
+        CASE("-parse") {
+            do_parse = true;
+            continue;
+        }
+        CASE("-close") {
+            do_close = true;
+            continue;
+        }
+        CASE("-handle") {
+            obj_serz = argv[argp++];
             continue;
         }
         CASE("-key") {
@@ -1279,13 +1284,22 @@ static int tcl_gemtcl_xnm(ClientData clientData,
             continue;
         }
 
-        res = "Unknown option " + S_ + "!\n";
-        break;
+        Tcl_AppendResult(tcl, slipprintf("Unknown option %s!",S_.c_str()).c_str(), NULL);
+        return TCL_ERROR;
     }
 
-    XnmValue *val = NULL;
     GError *error = NULL;
-    if (filename.length()) {
+    if (obj_serz.length()) {
+        const char *s = obj_serz.c_str();
+        if (s[0] != 'x'
+            || s[1] != 'n'
+            || s[2] != 'm') {
+            Tcl_SetResult(interp, g_strdup("Not a valid xnm object given"), tcl_str_free);
+            return TCL_ERROR;
+        }
+        val = (XnmValue*)(atoi(s+3));
+    }
+    else if (filename.length()) {
         xnm_parse_file(filename, &val, &error);
         if (error) {
             res = slipprintf("Failed parsing file: %s",
@@ -1304,12 +1318,22 @@ static int tcl_gemtcl_xnm(ClientData clientData,
         }
     }
     else
-        res = "Neither string nor file was given!";
+        res = "Neither string, file, nor handle was given!";
+
     if (res.length()) {
         Tcl_AppendResult(tcl, res.c_str(), NULL);
         return TCL_ERROR;
     }
 
+    if (do_close) {
+        xnm_value_unref(val);
+        return TCL_OK;
+    }
+    if (do_parse) {
+        Tcl_SetResult(interp, g_strdup_printf("xnm%d", (int)val), tcl_str_free);
+        return TCL_OK;
+    }
+    
     if (do_len) {
         int len = xnm_value_get_array_length(val, xnm_key);
         if (do_quiet)
@@ -1318,14 +1342,21 @@ static int tcl_gemtcl_xnm(ClientData clientData,
             res = slipprintf("Array len = %d\n", len);
     }
     else if (do_keylist) {
-        res = "Sorry! do_keylist is not supported yet!\n";
+        const GPtrArray *key_list;
+        int ret = xnm_value_get_table_key_list(val, xnm_key,
+                                               // output
+                                               &key_list);
+
+        
 #if 0
-        std::vector<string> key_list = xnm_value_get_keys(val, xnm_key);
-        for (int i=0; i<(int)key_list.size(); i++) 
-            res += key_list[i] + " ";
-        res.chop();
-        return res + "\n";
+        res = "Sorry! do_keylist is not supported yet!\n";
 #endif
+
+        if (ret == 0) {
+            for (int i=0; i<(int)key_list->len; i++) 
+                res += slip((gchar*)g_ptr_array_index(key_list, i)) + " ";
+            res.chop();
+        }
     }
     else if (do_ref) {
         XnmValue *v = NULL;
@@ -1359,7 +1390,9 @@ static int tcl_gemtcl_xnm(ClientData clientData,
         }
     }
             
-    if (val)
+    if (val &&
+        // Don't erase user handle
+        !obj_serz.length())
         xnm_value_unref(val);
     res.chomp();
     Tcl_AppendResult(tcl, res.c_str(), NULL);
@@ -1413,7 +1446,7 @@ static int tcl_gemtcl_xmlrpc_server(ClientData clientData,
             return TCL_ERROR;
         }
         if (new_state) {
-            int ret = create_xmlrpc(port);
+            int ret = create_xmlrpc_server(port);
             if (ret != 0) {
                 Tcl_SetResult(interp,
                               g_strdup("Failed creating xmlrpc server!"),
@@ -1426,12 +1459,147 @@ static int tcl_gemtcl_xmlrpc_server(ClientData clientData,
         else {
             Tcl_SetResult(interp, g_strdup_printf(""), tcl_str_free);
 
-            close_xmlrpc();
+            close_xmlrpc_server();
         }
     }
     return TCL_OK;
 }
 
+static int tcl_gemtcl_xmlrpc_client(ClientData clientData,
+                                    Tcl_Interp *tcl,
+                                    int argc, const char *argv[])
+{
+    int argp = 1;
+    bool do_connect = false;
+    slip object_string;
+    int port = -1;
+    GNetXmlRpcClient *client = NULL;
+    slip host = "localhost";
+    bool is_tmp_client = false;
+    slip method, params;
+    bool do_close = false;
+
+    while(argp < argc) {
+        slip S_ = argv[argp++];
+        CASE("-help") {
+            Tcl_SetResult(interp,
+                          g_strdup_printf(
+            "gemtcl_xmlrpc_client - Send xmlrpc commands to remote server\n"
+            "\n"
+            "Syntax:\n"
+            "    gemtcl_xmlrpc_client [-connect] [-handle handle] [-host host]\n"
+            "                         [-port port] [-method m] [-params p]\n"
+            "\n"
+            "Options:\n"
+            "    -connect    Connect to a remote server and return a handle\n"
+            "    -close      Disconnect a handle\n"
+            "    -handle h   Handle returned from -connect option\n"
+            "    -host host  Host to connect to\n"
+            "    -port port  Port to connect to\n"
+            "    -method m   Method to call\n"
+            "    -params p   Parameter string\n"
+                                          ),
+                          tcl_str_free);
+            return TCL_OK;
+        }
+        CASE("-connect") {
+            do_connect = true;
+            continue;
+        }
+        CASE("-handle") {
+            object_string = argv[argp++];
+            continue;
+        }
+        CASE("-port") {
+            port = atoi(argv[argp++]);
+            continue;
+        }
+        CASE("-host") {
+            host = argv[argp++];
+            continue;
+        }
+        CASE("-method") {
+            method = argv[argp++];
+            continue;
+        }
+        CASE("-params") {
+            params = argv[argp++];
+            continue;
+        }
+        CASE("-close") {
+            do_close = true;
+            continue;
+        }
+        Tcl_SetResult(interp, g_strdup_printf("Unknown option %s!",
+                                              S_.c_str()),
+                      tcl_str_free);
+        return TCL_ERROR;
+    }
+
+    if (do_connect) {
+        client = gnet_xmlrpc_client_new(host, port);
+        if (!client) {
+            Tcl_SetResult(interp, g_strdup_printf("Failed connecting to %s:%d",
+                                                  host.c_str(),
+                                                  port),
+                          tcl_str_free);
+            return TCL_ERROR;
+        }
+        Tcl_SetResult(interp, g_strdup_printf("GemXml%d", (int)client),
+                      tcl_str_free);
+        return TCL_OK;
+    }
+
+    if (object_string.length()) {
+        if (object_string.length()>6) 
+            client = (GNetXmlRpcClient*)atoi(object_string.c_str()+6);
+        if (!client) {
+            Tcl_SetResult(interp, g_strdup_printf("Object is not a vaild client"),
+                          tcl_str_free);
+            return TCL_ERROR;
+        }
+    }
+
+    if (port > 0) {
+        client = gnet_xmlrpc_client_new(host, port);
+        if (!client) {
+            Tcl_SetResult(interp, g_strdup_printf("Failed connecting to %s:%d",
+                                                  host.c_str(),
+                                                  port),
+                          tcl_str_free);
+            return TCL_ERROR;
+        }
+    }
+
+    if (!client) {
+        Tcl_SetResult(interp, g_strdup_printf("Need client or host/port!"), NULL);
+        return TCL_ERROR;
+    }
+    if (do_close) {
+        gnet_xmlrpc_client_delete(client);
+        Tcl_SetResult(interp, g_strdup(""), tcl_str_free);
+        return TCL_OK;
+    }
+
+    gchar *reply = NULL;
+    if (gnet_xmlrpc_client_call(client,
+                                method,
+                                params,
+                                // output
+                                &reply)==0) {
+        Tcl_SetResult(interp, reply, tcl_str_free);
+    }
+    else {
+        Tcl_SetResult(interp, g_strdup_printf("Failed xmlrpc call"), NULL);
+        return TCL_ERROR;
+    }
+    if (is_tmp_client)
+        gnet_xmlrpc_client_delete(client);
+
+    return TCL_OK;
+}
+
+#if 0
 static void
 app_error (const char *format, ...)
 {
@@ -1452,6 +1620,7 @@ app_error (const char *format, ...)
 
     return;
 }
+#endif
 
 static int tcl_gets(ClientData clientData,
                     Tcl_Interp *interp,
@@ -1679,6 +1848,9 @@ void thread_init_tcl()
     Tcl_CreateCommand(interp, "gemtcl_xmlrpc_server",
                       tcl_gemtcl_xmlrpc_server, (ClientData) NULL,
                       (Tcl_CmdDeleteProc *) NULL);
+    Tcl_CreateCommand(interp, "gemtcl_xmlrpc_client",
+                      tcl_gemtcl_xmlrpc_client, (ClientData) NULL,
+                      (Tcl_CmdDeleteProc *) NULL);
     Tcl_Eval(interp,
              "proc shift {list} {\n"
              "  upvar $list l\n"
@@ -1754,7 +1926,8 @@ void thread_init_tcl()
 
 #ifdef WIN32
     slip tcl_lib = Tcl_GetNameOfExecutable();
-    tcl_lib.s("/[^\\/]*$","/lib");
+    tcl_lib.s("/[^\\/]*$","/lib/tcl");
+    tcl_lib.s("bin/lib","lib");
     Tcl_Eval(interp, slipprintf("set tcl_library \"%s\"; source $tcl_library/init.tcl", tcl_lib.c_str()).c_str());
 
     Tcl_Eval(interp, "proc dir args { exec cmd /c dir $args }");
@@ -2197,6 +2370,19 @@ cb_menu_file_close(gpointer   callback_data,
         gtk_widget_unref(current_bb);
         gtk_notebook_remove_page(GTK_NOTEBOOK(w_notebook), page_idx);
         gtk_widget_destroy(dialog);
+        if (w_virtual_notebook_page)
+            gtk_container_remove(GTK_CONTAINER(w_button_box_vbox),
+                                 w_virtual_notebook_page);
+        w_virtual_notebook_page = NULL;
+        // Switch page
+        page_idx = gtk_notebook_get_current_page(GTK_NOTEBOOK(w_notebook));
+        if (page_idx >= 0) {
+            cb_switched_page(GTK_NOTEBOOK(w_notebook),
+                             NULL,
+                             page_idx,
+                             NULL);
+        }
+
     }
 }
     
@@ -2266,11 +2452,21 @@ static void cb_menu_tools_xmlrpc(gpointer   callback_data,
                                  GtkWidget *widget)
 
 {
-    bool do_xmlrpc = gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (gtk_item_factory_get_item (item_factory, "/Tools/XmlRpc")));
-    if (do_xmlrpc)
-        create_xmlrpc(-1);
-    else
-        close_xmlrpc();
+    bool do_xmlrpc = gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (gtk_item_factory_get_item (item_factory, "/Tools/XmlRpc Server")));
+    if (do_xmlrpc) {
+        int ret = create_xmlrpc_server(-1);
+        if (ret != 0) {
+            add_to_end_of_buffer(FALSE, FALSE, TRUE, "Failed creating xmlrpc server\n");
+        }
+        else {
+            add_to_end_of_buffer(FALSE, FALSE, TRUE, "Created xmlrpc server\n");
+        }
+    }
+    else {
+        close_xmlrpc_server();
+        add_to_end_of_buffer(FALSE, FALSE, TRUE, "Closed xmlrpc server\n");
+    }
+
 }
 
 void cb_button_box_name_changed(GtkWidget *widget,
@@ -2340,14 +2536,15 @@ static int command_tcl_eval(const gchar *cmd)
     return 0;
 }
 
+#if WIN32
 static void set_tcl_library_from_executable()
 {
-#if WIN32
     slip tcl_lib = Tcl_GetNameOfExecutable();
-    tcl_lib.s("/[^\\/]*$","/lib");
+    tcl_lib.s("/[^\\/]*$","/lib/tcl");
+    tcl_lib.s("bin/lib","lib");
     Tcl_Eval(interp, slipprintf("set tcl_library %s; source $tcl_library/init.tcl", tcl_lib.c_str()).c_str());
-#endif
 }
+#endif
 
 static void cb_switched_page (GtkNotebook     *notebook,
                               GtkNotebookPage *page,
@@ -2445,7 +2642,7 @@ static int xmlrpc_cmd_tcl_eval_finish(const gchar *reply)
 
 static int read_config()
 {
-    
+    return 0;
 }
 
 int main(int argc, char **argv)
@@ -2459,6 +2656,7 @@ int main(int argc, char **argv)
     g_thread_init(NULL);
     gdk_threads_init();
     gtk_init(&argc, &argv);
+    glade_init();
     gdk_threads_enter ();
 
     settings_file = slip(g_get_home_dir())+"/"+".gemtcl.rc";

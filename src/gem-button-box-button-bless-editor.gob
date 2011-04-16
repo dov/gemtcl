@@ -74,9 +74,9 @@ class Gem:Button:Box:Button:Bless:Editor from Gtk:Dialog
                            FALSE, FALSE, 0);
         selfp->w_entry_label = gtk_entry_new();
         gtk_entry_set_text(GTK_ENTRY(selfp->w_entry_label),
-                           gem_button_box_button_bless_get_label(GTK_BUTTON(bbb)));
+                           gem_button_box_button_bless_get_label(bbb));
         
-        if (!gem_button_box_button_bless_get_label_is_editible(GTK_BUTTON(bbb))) 
+        if (!gem_button_box_button_bless_get_label_is_editible(bbb)) 
             gtk_entry_set_editable(GTK_ENTRY(selfp->w_entry_label), false);
 
         gtk_box_pack_start(GTK_BOX(hbox),
@@ -107,7 +107,7 @@ class Gem:Button:Box:Button:Bless:Editor from Gtk:Dialog
                                                 true);
 #endif        
         gtk_text_buffer_set_text(GTK_TEXT_BUFFER(selfp->text_buffer),
-                                 gem_button_box_button_bless_get_script(GTK_BUTTON(bbb)), -1);
+                                 gem_button_box_button_bless_get_script(bbb), -1);
 
         gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW(w_text_view),
                                      GTK_WRAP_NONE);
@@ -164,7 +164,7 @@ class Gem:Button:Box:Button:Bless:Editor from Gtk:Dialog
         switch (response_id) {
         case GTK_RESPONSE_CLOSE:
             {
-                const gchar *current_script = gem_button_box_button_bless_get_script(GTK_BUTTON(selfp->button_box_button));
+                const gchar *current_script = gem_button_box_button_bless_get_script(selfp->button_box_button);
                 if (strcmp(current_script, contents) != 0) {
                     GtkWidget *qdialog
                         = gtk_message_dialog_new(GTK_WINDOW(dialog),
@@ -175,10 +175,10 @@ class Gem:Button:Box:Button:Bless:Editor from Gtk:Dialog
                                                  );
                     gtk_widget_show_all(qdialog);
                     if (gtk_dialog_run(GTK_DIALOG(qdialog)) == GTK_RESPONSE_YES) {
-                        gem_button_box_button_bless_set_script(GTK_BUTTON(selfp->button_box_button),
+                        gem_button_box_button_bless_set_script(selfp->button_box_button,
                                                          contents);
-                        if (gem_button_box_button_bless_get_label_is_editible(GTK_BUTTON(selfp->button_box_button)))
-                            gem_button_box_button_bless_set_label(GTK_BUTTON(selfp->button_box_button),
+                        if (gem_button_box_button_bless_get_label_is_editible(selfp->button_box_button))
+                            gem_button_box_button_bless_set_label(selfp->button_box_button,
                                                                   gtk_entry_get_text(GTK_ENTRY(selfp->w_entry_label)));
                     }
                     
@@ -193,15 +193,15 @@ class Gem:Button:Box:Button:Bless:Editor from Gtk:Dialog
                 if (!run_cmd)
                     run_cmd = contents;
 
-                gem_button_box_button_bless_cmd_eval(GTK_BUTTON(selfp->button_box_button),
+                gem_button_box_button_bless_cmd_eval(selfp->button_box_button,
                                                      run_cmd);
                 break;
             }
         case RESPONSE_SAVE:
-            if (gem_button_box_button_bless_get_label_is_editible(GTK_BUTTON(selfp->button_box_button))) 
-                gem_button_box_button_bless_set_label(GTK_BUTTON(selfp->button_box_button),
+            if (gem_button_box_button_bless_get_label_is_editible(selfp->button_box_button)) 
+                gem_button_box_button_bless_set_label(selfp->button_box_button,
                                                       gtk_entry_get_text(GTK_ENTRY(selfp->w_entry_label)));
-            gem_button_box_button_bless_set_script(GTK_BUTTON(selfp->button_box_button),
+            gem_button_box_button_bless_set_script(selfp->button_box_button,
                                                    contents);
             break;
         default:

@@ -42,7 +42,7 @@ static int
 cb_button_press_event(GtkWidget *button,
                       GdkEventButton *event);
                   
-void gem_button_box_button_bless(GtkButton *button,
+void gem_button_box_button_bless(GtkWidget *button,
                                  const char *label,
                                  const gchar *script,
                                  GtkWidget   *button_box,
@@ -111,10 +111,15 @@ void gem_button_box_button_bless(GtkButton *button,
                     row,row+1);
     row++;
 
-    // Connect the click handler
-    g_signal_connect(button, "clicked",
-                     G_CALLBACK(cb_button_clicked),
-                     NULL);
+    if (GTK_IS_BUTTON(button)) 
+        // Connect the click handler
+        g_signal_connect(button, "clicked",
+                         G_CALLBACK(cb_button_clicked),
+                         NULL);
+    else if (GTK_IS_RANGE(button))
+        g_signal_connect(button, "value-changed",
+                         G_CALLBACK(cb_button_clicked),
+                         NULL);
     g_signal_connect(button, "button-press-event",
                      G_CALLBACK(cb_button_press_event),
                      NULL);
@@ -123,25 +128,25 @@ void gem_button_box_button_bless(GtkButton *button,
 }
                                  
 const gchar *
-gem_button_box_button_bless_get_script(GtkButton *button)
+gem_button_box_button_bless_get_script(GtkWidget *button)
 {
     return (const gchar *)g_object_get_data(G_OBJECT(button), "script");
 }
 
 const gchar *
-gem_button_box_button_bless_get_label(GtkButton *button)
+gem_button_box_button_bless_get_label(GtkWidget *button)
 {
     return (const gchar *)g_object_get_data(G_OBJECT(button), "label");
 }
 
 bool
-gem_button_box_button_bless_get_label_is_editible(GtkButton *button)
+gem_button_box_button_bless_get_label_is_editible(GtkWidget *button)
 {
     return GPOINTER_TO_INT(g_object_get_data(G_OBJECT(button), "is_editable"));
 }
 
 void
-gem_button_box_button_bless_cmd_eval(GtkButton *button, const char *cmd)
+gem_button_box_button_bless_cmd_eval(GtkWidget *button, const char *cmd)
 {
     GemCmdEval *cmd_eval = (GemCmdEval*)g_object_get_data(G_OBJECT(button),
                                                           "cmd_eval");
@@ -159,7 +164,7 @@ gem_button_box_button_bless_cmd_eval(GtkButton *button, const char *cmd)
 
 
 void
-gem_button_box_button_bless_set_script(GtkButton *button, const gchar *script)
+gem_button_box_button_bless_set_script(GtkWidget *button, const gchar *script)
 {
     g_object_set_data_full(G_OBJECT(button),
                            "script",
@@ -168,7 +173,7 @@ gem_button_box_button_bless_set_script(GtkButton *button, const gchar *script)
 }
 
 void
-gem_button_box_button_bless_set_label(GtkButton *button, const gchar *label)
+gem_button_box_button_bless_set_label(GtkWidget *button, const gchar *label)
 {
     g_object_set_data_full(G_OBJECT(button),
                            "label",
@@ -203,7 +208,7 @@ cb_button_menu_activate_delete(GtkWidget *menuitem,
 static void
 cb_button_clicked(GtkWidget *button)
 {
-    gem_button_box_button_bless_cmd_eval(GTK_BUTTON(button), NULL);
+    gem_button_box_button_bless_cmd_eval(GTK_WIDGET(button), NULL);
 }    
                   
 static
@@ -219,7 +224,7 @@ int cb_button_press_event (GtkWidget *button,
         gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL,
                        event->button, event->time);
         
-        gem_button_box_button_bless_cmd_eval(GTK_BUTTON(button), "");
+        gem_button_box_button_bless_cmd_eval(GTK_WIDGET(button), "");
         return TRUE;
     }
 

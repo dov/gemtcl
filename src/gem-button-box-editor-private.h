@@ -17,23 +17,23 @@ extern "C" {
 
 #line 19 "gem-button-box-editor-private.h"
 struct _GemButtonBoxEditorPrivate {
-#line 74 "src/gem-button-box-editor.gob"
-	GemButtonBox * button_box;
-#line 75 "src/gem-button-box-editor.gob"
-	GtkListStore * store;
-#line 76 "src/gem-button-box-editor.gob"
-	GtkWidget * w_tree_view;
 #line 77 "src/gem-button-box-editor.gob"
-	GtkWidget * w_entry_label;
+	GemButtonBox * button_box;
 #line 78 "src/gem-button-box-editor.gob"
-	GtkWidget * w_entry_balloon;
+	GtkListStore * store;
 #line 79 "src/gem-button-box-editor.gob"
-	GtkWidget * w_use_glade_check;
+	GtkWidget * w_tree_view;
 #line 80 "src/gem-button-box-editor.gob"
-	GtkWidget * w_glade_filename_box;
+	GtkWidget * w_entry_label;
 #line 81 "src/gem-button-box-editor.gob"
-	GtkWidget * w_glade_filechooser_button;
+	GtkWidget * w_entry_balloon;
 #line 82 "src/gem-button-box-editor.gob"
+	GtkWidget * w_use_glade_check;
+#line 83 "src/gem-button-box-editor.gob"
+	GtkWidget * w_glade_filename_box;
+#line 84 "src/gem-button-box-editor.gob"
+	GtkWidget * w_glade_filechooser_button;
+#line 85 "src/gem-button-box-editor.gob"
 	gboolean is_inserting;
 #line 39 "gem-button-box-editor-private.h"
 };

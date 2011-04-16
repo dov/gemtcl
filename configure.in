@@ -4,13 +4,14 @@ AM_CONFIG_HEADER(config.h)
 
 PACKAGE=gemtcl
 
-AM_INIT_AUTOMAKE($PACKAGE,"0.1.26")
+AM_INIT_AUTOMAKE($PACKAGE,"0.1.33")
 
 dnl Use libtool to get shared libraries
 AC_PROG_CC
 AC_PROG_YACC
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
+AM_PROG_CC_C_O
 
 dnl dito install
 AC_PROG_INSTALL
@@ -51,4 +52,5 @@ src/Makefile
 src/xnm/Makefile
 src/plis/Makefile
 doc/Makefile
+server-examples/Makefile
 ])

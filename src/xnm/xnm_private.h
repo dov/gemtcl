@@ -94,6 +94,7 @@ int           xnm_table_get_key         (XnmTable *xnm_table,
                                          // output
                                          XnmValue **ret_xnm_value
                                          );
+const GPtrArray *xnm_table_get_key_list (XnmTable *xnm_table);
 gboolean      xnm_table_has_key         (XnmTable *xnm_table,
                                          const char* key);
 void          xnm_table_set_key_value   (XnmTable *xnm_table,

@@ -13,7 +13,7 @@
 
 extern "C" {
 
-void gem_button_box_button_bless(GtkButton *button,
+void gem_button_box_button_bless(GtkWidget *button,
                                  const char *label,
                                  const gchar *script,
                                  GtkWidget   *button_box,
@@ -21,22 +21,22 @@ void gem_button_box_button_bless(GtkButton *button,
                                  bool label_is_editable);
 
 const gchar *
-gem_button_box_button_bless_get_script(GtkButton *button);
+gem_button_box_button_bless_get_script(GtkWidget *button);
 
 const gchar *
-gem_button_box_button_bless_get_label(GtkButton *button);
+gem_button_box_button_bless_get_label(GtkWidget *button);
 
 void
-gem_button_box_button_bless_cmd_eval(GtkButton *button, const char *cmd);
+gem_button_box_button_bless_cmd_eval(GtkWidget *button, const char *cmd);
 
 void
-gem_button_box_button_bless_set_script(GtkButton *button, const gchar *script);
+gem_button_box_button_bless_set_script(GtkWidget *button, const gchar *script);
 
 void
-gem_button_box_button_bless_set_label(GtkButton *button, const gchar *script);
+gem_button_box_button_bless_set_label(GtkWidget *button, const gchar *script);
 
 bool
-gem_button_box_button_bless_get_label_is_editible(GtkButton *button);
+gem_button_box_button_bless_get_label_is_editible(GtkWidget *button);
 
 }
 

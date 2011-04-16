@@ -47,12 +47,11 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_gemtcl_OBJECTS = gemtcl-gemtcl.$(OBJEXT) \
-	gemtcl-gem-button-box.$(OBJEXT) \
-	gemtcl-gem-button-box-editor.$(OBJEXT) \
-	gemtcl-gem-button-box-button-bless.$(OBJEXT) \
-	gemtcl-gem-button-box-button-bless-editor.$(OBJEXT) \
-	gemtcl-xmlrpc-server.$(OBJEXT)
+am_gemtcl_OBJECTS = gemtcl.$(OBJEXT) gem-button-box.$(OBJEXT) \
+	gem-button-box-editor.$(OBJEXT) \
+	gem-button-box-button-bless.$(OBJEXT) \
+	gem-button-box-button-bless-editor.$(OBJEXT) \
+	xmlrpc-server.$(OBJEXT) xmlrpc-client.$(OBJEXT)
 gemtcl_OBJECTS = $(am_gemtcl_OBJECTS)
 am__DEPENDENCIES_1 =
 gemtcl_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -116,6 +115,7 @@ CYGPATH_W = echo
 DB2HTML = true
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
+DSYMUTIL = 
 ECHO = echo
 ECHO_C = 
 ECHO_N = -n
@@ -126,8 +126,8 @@ F77 = gfortran
 FFLAGS = -g -O2
 GEMTCL_PACKAGES = gtk+-2.0 gobject-2.0 gmodule-2.0 libglade-2.0 gnet-2.0 gtksourceview-2.0
 GREP = /bin/grep
-GTK_CFLAGS = -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include  
-GTK_LIBS = -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgdk_pixbuf-2.0 -lpangocairo-1.0 -lpango-1.0 -lcairo -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0  
+GTK_CFLAGS = -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12  
+GTK_LIBS = -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lpangocairo-1.0 -lcairo -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lglib-2.0  
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -142,12 +142,13 @@ LTLIBOBJS =
 MAINT = #
 MAKEINFO = ${SHELL} /archive/svnwork/gemtcl/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
+NMEDIT = 
 OBJEXT = o
 PACKAGE = gemtcl
 PACKAGE_BUGREPORT = 
 PACKAGE_CFLAGS = 
-PACKAGE_LIBS = -pthread -Wl,--export-dynamic -L/usr/local/lib -lglade-2.0 -lxml2 -lgnet-2.0 -lgthread-2.0 -lgtksourceview-2.0 -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgdk_pixbuf-2.0 -lpangocairo-1.0 -lpango-1.0 -lcairo -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0   -lpcre -ltcl
-PACKAGE_CFLAGS=-pthread -I/usr/local/include/gnet-2.0 -I/usr/local/lib/gnet-2.0/include/ -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/libglade-2.0 -I/usr/include/libxml2 -I/usr/include/gtksourceview-2.0  
+PACKAGE_LIBS = -pthread -Wl,--export-dynamic -L/usr/local/lib -lglade-2.0 -lxml2 -lgnet-2.0 -lgthread-2.0 -lgtksourceview-2.0 -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lpangocairo-1.0 -lcairo -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lglib-2.0   -lpcre -ltcl
+PACKAGE_CFLAGS=-pthread -I/usr/local/include/gnet-2.0 -I/usr/local/lib/gnet-2.0/include/ -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/include/libglade-2.0 -I/usr/include/libxml2 -I/usr/include/gtksourceview-2.0  
 PACKAGE_NAME = 
 PACKAGE_STRING = 
 PACKAGE_TARNAME = 
@@ -159,7 +160,7 @@ SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = strip
-VERSION = 0.1.26
+VERSION = 0.1.33
 YACC = bison -y
 YFLAGS = 
 abs_builddir = /archive/svnwork/gemtcl/src
@@ -211,6 +212,7 @@ sharedstatedir = ${prefix}/com
 srcdir = .
 sysconfdir = ${prefix}/etc
 target_alias = 
+top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
 SUBDIRS = plis xnm
@@ -221,32 +223,32 @@ EXTRA_DIST = changelog_string.i logo_150_inline.i logo_64_inline.i \
 	gem-button-box-button-bless-editor-private.h \
 	gem-button-box-editor.cc gem-button-box-editor.h \
 	gem-button-box-editor-private.h
-BUILT_SOURCES = gem-button-box.gob.stamp \
-	gem-button-box-button-bless-editor.gob.stamp \
-	gem-button-box-editor.gob.stamp
-DISTCLEANFILES = gem-button-box.gob.stamp gem-button-box.cc \
-	gem-button-box.h gem-button-box-private.h \
-	gem-button-box-button-bless-editor.gob.stamp \
-	gem-button-box-button-bless-editor.cc \
+BUILT_SOURCES = 
+DISTCLEANFILES = gem-button-box.cc gem-button-box.h \
+	gem-button-box-private.h gem-button-box-button-bless-editor.cc \
 	gem-button-box-button-bless-editor.h \
 	gem-button-box-button-bless-editor-private.h \
-	gem-button-box-editor.gob.stamp gem-button-box-editor.cc \
-	gem-button-box-editor.h gem-button-box-editor-private.h
+	gem-button-box-editor.cc gem-button-box-editor.h \
+	gem-button-box-editor-private.h
 gemtcl_SOURCES = \
     gemtcl.cc \
     gem-button-box.cc \
     gem-button-box-editor.cc \
     gem-button-box-button-bless.cc \
     gem-button-box-button-bless-editor.cc \
-    xmlrpc-server.c
+    xmlrpc-server.c \
+    xmlrpc-client.c
 
 gemtcl_LDADD = $(PACKAGE_LIBS) 
 gemtcl_LDFLAGS = -Lplis -lplis -Lxnm -lxnm
-gemtcl_CPPFLAGS = $(PACKAGE_CFLAGS) -Iplis -Ixnm
-noinst_HEADERS = 
-gem_button_box_SOURCES = gem-button-box.gob gem-button-box.gob.stamp gem-button-box.cc gem-button-box.h gem-button-box-private.h
-gem_button_box_button_bless_editor_SOURCES = gem-button-box-button-bless-editor.gob gem-button-box-button-bless-editor.gob.stamp gem-button-box-button-bless-editor.cc gem-button-box-button-bless-editor.h gem-button-box-button-bless-editor-private.h
-gem_button_box_editor_SOURCES = gem-button-box-editor.gob gem-button-box-editor.gob.stamp gem-button-box-editor.cc gem-button-box-editor.h gem-button-box-editor-private.h
+INCLUDES = $(PACKAGE_CFLAGS) \
+           -I$(top_srcdir)/src/xnm \
+           -I$(top_srcdir)/src/plis 
+
+noinst_HEADERS = gem.h gnet_xmlrpc.h gem-button-box-button-bless.h
+gem_button_box_SOURCES = gem-button-box.cc gem-button-box.h gem-button-box-private.h
+gem_button_box_button_bless_editor_SOURCES = gem-button-box-button-bless-editor.cc gem-button-box-button-bless-editor.h gem-button-box-button-bless-editor-private.h
+gem_button_box_editor_SOURCES = gem-button-box-editor.cc gem-button-box-editor.h gem-button-box-editor-private.h
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -319,12 +321,13 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-include ./$(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Po
-include ./$(DEPDIR)/gemtcl-gem-button-box-button-bless.Po
-include ./$(DEPDIR)/gemtcl-gem-button-box-editor.Po
-include ./$(DEPDIR)/gemtcl-gem-button-box.Po
-include ./$(DEPDIR)/gemtcl-gemtcl.Po
-include ./$(DEPDIR)/gemtcl-xmlrpc-server.Po
+include ./$(DEPDIR)/gem-button-box-button-bless-editor.Po
+include ./$(DEPDIR)/gem-button-box-button-bless.Po
+include ./$(DEPDIR)/gem-button-box-editor.Po
+include ./$(DEPDIR)/gem-button-box.Po
+include ./$(DEPDIR)/gemtcl.Po
+include ./$(DEPDIR)/xmlrpc-client.Po
+include ./$(DEPDIR)/xmlrpc-server.Po
 
 .c.o:
 	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -347,20 +350,6 @@ include ./$(DEPDIR)/gemtcl-xmlrpc-server.Po
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(LTCOMPILE) -c -o $@ $<
 
-gemtcl-xmlrpc-server.o: xmlrpc-server.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gemtcl-xmlrpc-server.o -MD -MP -MF $(DEPDIR)/gemtcl-xmlrpc-server.Tpo -c -o gemtcl-xmlrpc-server.o `test -f 'xmlrpc-server.c' || echo '$(srcdir)/'`xmlrpc-server.c
-	mv -f $(DEPDIR)/gemtcl-xmlrpc-server.Tpo $(DEPDIR)/gemtcl-xmlrpc-server.Po
-#	source='xmlrpc-server.c' object='gemtcl-xmlrpc-server.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gemtcl-xmlrpc-server.o `test -f 'xmlrpc-server.c' || echo '$(srcdir)/'`xmlrpc-server.c
-
-gemtcl-xmlrpc-server.obj: xmlrpc-server.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT gemtcl-xmlrpc-server.obj -MD -MP -MF $(DEPDIR)/gemtcl-xmlrpc-server.Tpo -c -o gemtcl-xmlrpc-server.obj `if test -f 'xmlrpc-server.c'; then $(CYGPATH_W) 'xmlrpc-server.c'; else $(CYGPATH_W) '$(srcdir)/xmlrpc-server.c'; fi`
-	mv -f $(DEPDIR)/gemtcl-xmlrpc-server.Tpo $(DEPDIR)/gemtcl-xmlrpc-server.Po
-#	source='xmlrpc-server.c' object='gemtcl-xmlrpc-server.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o gemtcl-xmlrpc-server.obj `if test -f 'xmlrpc-server.c'; then $(CYGPATH_W) 'xmlrpc-server.c'; else $(CYGPATH_W) '$(srcdir)/xmlrpc-server.c'; fi`
-
 .cc.o:
 	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
 	mv -f $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
@@ -381,76 +370,6 @@ gemtcl-xmlrpc-server.obj: xmlrpc-server.c
 #	source='$<' object='$@' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(LTCXXCOMPILE) -c -o $@ $<
-
-gemtcl-gemtcl.o: gemtcl.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gemtcl.o -MD -MP -MF $(DEPDIR)/gemtcl-gemtcl.Tpo -c -o gemtcl-gemtcl.o `test -f 'gemtcl.cc' || echo '$(srcdir)/'`gemtcl.cc
-	mv -f $(DEPDIR)/gemtcl-gemtcl.Tpo $(DEPDIR)/gemtcl-gemtcl.Po
-#	source='gemtcl.cc' object='gemtcl-gemtcl.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gemtcl.o `test -f 'gemtcl.cc' || echo '$(srcdir)/'`gemtcl.cc
-
-gemtcl-gemtcl.obj: gemtcl.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gemtcl.obj -MD -MP -MF $(DEPDIR)/gemtcl-gemtcl.Tpo -c -o gemtcl-gemtcl.obj `if test -f 'gemtcl.cc'; then $(CYGPATH_W) 'gemtcl.cc'; else $(CYGPATH_W) '$(srcdir)/gemtcl.cc'; fi`
-	mv -f $(DEPDIR)/gemtcl-gemtcl.Tpo $(DEPDIR)/gemtcl-gemtcl.Po
-#	source='gemtcl.cc' object='gemtcl-gemtcl.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gemtcl.obj `if test -f 'gemtcl.cc'; then $(CYGPATH_W) 'gemtcl.cc'; else $(CYGPATH_W) '$(srcdir)/gemtcl.cc'; fi`
-
-gemtcl-gem-button-box.o: gem-button-box.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box.o -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box.Tpo -c -o gemtcl-gem-button-box.o `test -f 'gem-button-box.cc' || echo '$(srcdir)/'`gem-button-box.cc
-	mv -f $(DEPDIR)/gemtcl-gem-button-box.Tpo $(DEPDIR)/gemtcl-gem-button-box.Po
-#	source='gem-button-box.cc' object='gemtcl-gem-button-box.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box.o `test -f 'gem-button-box.cc' || echo '$(srcdir)/'`gem-button-box.cc
-
-gemtcl-gem-button-box.obj: gem-button-box.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box.obj -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box.Tpo -c -o gemtcl-gem-button-box.obj `if test -f 'gem-button-box.cc'; then $(CYGPATH_W) 'gem-button-box.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box.cc'; fi`
-	mv -f $(DEPDIR)/gemtcl-gem-button-box.Tpo $(DEPDIR)/gemtcl-gem-button-box.Po
-#	source='gem-button-box.cc' object='gemtcl-gem-button-box.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box.obj `if test -f 'gem-button-box.cc'; then $(CYGPATH_W) 'gem-button-box.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box.cc'; fi`
-
-gemtcl-gem-button-box-editor.o: gem-button-box-editor.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-editor.o -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-editor.Tpo -c -o gemtcl-gem-button-box-editor.o `test -f 'gem-button-box-editor.cc' || echo '$(srcdir)/'`gem-button-box-editor.cc
-	mv -f $(DEPDIR)/gemtcl-gem-button-box-editor.Tpo $(DEPDIR)/gemtcl-gem-button-box-editor.Po
-#	source='gem-button-box-editor.cc' object='gemtcl-gem-button-box-editor.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-editor.o `test -f 'gem-button-box-editor.cc' || echo '$(srcdir)/'`gem-button-box-editor.cc
-
-gemtcl-gem-button-box-editor.obj: gem-button-box-editor.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-editor.obj -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-editor.Tpo -c -o gemtcl-gem-button-box-editor.obj `if test -f 'gem-button-box-editor.cc'; then $(CYGPATH_W) 'gem-button-box-editor.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-editor.cc'; fi`
-	mv -f $(DEPDIR)/gemtcl-gem-button-box-editor.Tpo $(DEPDIR)/gemtcl-gem-button-box-editor.Po
-#	source='gem-button-box-editor.cc' object='gemtcl-gem-button-box-editor.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-editor.obj `if test -f 'gem-button-box-editor.cc'; then $(CYGPATH_W) 'gem-button-box-editor.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-editor.cc'; fi`
-
-gemtcl-gem-button-box-button-bless.o: gem-button-box-button-bless.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-button-bless.o -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-button-bless.Tpo -c -o gemtcl-gem-button-box-button-bless.o `test -f 'gem-button-box-button-bless.cc' || echo '$(srcdir)/'`gem-button-box-button-bless.cc
-	mv -f $(DEPDIR)/gemtcl-gem-button-box-button-bless.Tpo $(DEPDIR)/gemtcl-gem-button-box-button-bless.Po
-#	source='gem-button-box-button-bless.cc' object='gemtcl-gem-button-box-button-bless.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-button-bless.o `test -f 'gem-button-box-button-bless.cc' || echo '$(srcdir)/'`gem-button-box-button-bless.cc
-
-gemtcl-gem-button-box-button-bless.obj: gem-button-box-button-bless.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-button-bless.obj -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-button-bless.Tpo -c -o gemtcl-gem-button-box-button-bless.obj `if test -f 'gem-button-box-button-bless.cc'; then $(CYGPATH_W) 'gem-button-box-button-bless.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-button-bless.cc'; fi`
-	mv -f $(DEPDIR)/gemtcl-gem-button-box-button-bless.Tpo $(DEPDIR)/gemtcl-gem-button-box-button-bless.Po
-#	source='gem-button-box-button-bless.cc' object='gemtcl-gem-button-box-button-bless.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-button-bless.obj `if test -f 'gem-button-box-button-bless.cc'; then $(CYGPATH_W) 'gem-button-box-button-bless.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-button-bless.cc'; fi`
-
-gemtcl-gem-button-box-button-bless-editor.o: gem-button-box-button-bless-editor.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-button-bless-editor.o -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Tpo -c -o gemtcl-gem-button-box-button-bless-editor.o `test -f 'gem-button-box-button-bless-editor.cc' || echo '$(srcdir)/'`gem-button-box-button-bless-editor.cc
-	mv -f $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Tpo $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Po
-#	source='gem-button-box-button-bless-editor.cc' object='gemtcl-gem-button-box-button-bless-editor.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-button-bless-editor.o `test -f 'gem-button-box-button-bless-editor.cc' || echo '$(srcdir)/'`gem-button-box-button-bless-editor.cc
-
-gemtcl-gem-button-box-button-bless-editor.obj: gem-button-box-button-bless-editor.cc
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT gemtcl-gem-button-box-button-bless-editor.obj -MD -MP -MF $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Tpo -c -o gemtcl-gem-button-box-button-bless-editor.obj `if test -f 'gem-button-box-button-bless-editor.cc'; then $(CYGPATH_W) 'gem-button-box-button-bless-editor.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-button-bless-editor.cc'; fi`
-	mv -f $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Tpo $(DEPDIR)/gemtcl-gem-button-box-button-bless-editor.Po
-#	source='gem-button-box-button-bless-editor.cc' object='gemtcl-gem-button-box-button-bless-editor.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
-#	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(gemtcl_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o gemtcl-gem-button-box-button-bless-editor.obj `if test -f 'gem-button-box-button-bless-editor.cc'; then $(CYGPATH_W) 'gem-button-box-button-bless-editor.cc'; else $(CYGPATH_W) '$(srcdir)/gem-button-box-button-bless-editor.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -747,8 +666,11 @@ uninstall-am: uninstall-binPROGRAMS
 
 # How do I make this happen at autoconf/automake time and not at compile time?
 %.gob.stamp: %.gob
-	gob2 --for-cpp $<
+	gob2 --no-touch --for-cpp $<
 	@touch $@ 
+
+%cc %h %-private.h: %.gob
+	gob2 --for-cpp $<
 
 logo_150_inline.i: ../misc/gemtcl-logo-150.png
 	gdk-pixbuf-csource --name=logo_150_inline $< > $@

@@ -19,6 +19,7 @@ src = ["gemtcl.cc",
        "gem-button-box-button-bless.cc",
        "gem-button-box-button-bless-editor.cc",
        "xmlrpc-server.c",
+       "xmlrpc-client.c",
        ]
 
 if ARGUMENTS.get('mingw', 0):
@@ -45,6 +46,8 @@ env.Program("gemtcl",
             LIBPATH=['xnm','plis'] + env['LIBPATH'],
             LIBS=['xnm','plis'] + env['LIBS'],
             CPPPATH = ['xnm','plis'] + env['CPPPATH'])
+env.Depends("gemtcl",
+            ["xnm","plis"])
 
 for gob in ("gem-button-box",
             "gem-button-box-button-bless-editor",
