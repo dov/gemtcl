@@ -699,7 +699,10 @@ class Gem:Button:Box from Gtk:VBox
         GtkWidget *widget = glade_xml_get_widget(selfp->xml, widget_name);
 
         if (widget) {
-            if (GTK_IS_ENTRY(widget))
+            if (GTK_IS_SPIN_BUTTON(widget))
+                gtk_spin_button_set_value(GTK_SPIN_BUTTON(widget),
+                                          atof(value));
+            else if (GTK_IS_ENTRY(widget))
                 gtk_entry_set_text(GTK_ENTRY(widget),
                                    value);
             else if  (GTK_IS_LABEL(widget))

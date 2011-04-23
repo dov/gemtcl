@@ -1,0 +1,13 @@
+name => "Oranges"
+use_glade => 1
+glade_filename => "/home/dov/github/gemtcl/examples/oranges.glade"
+buttons=> [
+]
+glade_scripts => [
+]
+glade_inputs => [
+  {
+    name => "num_oranges"
+    value => "1000"
+  }
+]
