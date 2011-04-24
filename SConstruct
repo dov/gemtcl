@@ -38,16 +38,26 @@ env.Command("config.h",
             create_version)
     
 if ARGUMENTS.get('mingw', 0):
-    env['CC']='/usr/local/mingw32/bin/mingw32-gcc'
-    env['CXX']='/usr/local/mingw32/bin/mingw32-g++'
-    env['AR']='/usr/local/mingw32/bin/mingw32-ar'
-    env['RANLIB']='/usr/local/mingw32/bin/mingw32-ranlib'
-    env['PKGCONFIG'] = "PKG_CONFIG_PATH=/usr/local/mingw32/lib/pkgconfig pkg-config"
+    env['CC']='i686-pc-mingw32-gcc'
+    env['SHCC']='i686-pc-mingw32-gcc'
+    env['CXX']='i686-pc-mingw32-g++'
+    env['SHCXX']='i686-pc-mingw32-g++'
+    env['AR']='i686-pc-mingw32-ar'
+    env['RANLIB']='i686-pc-mingw32-ranlib'
+    env['ENV']['PKG_CONFIG_PATH'] = "/usr/i686-pc-mingw32/sys-root/mingw/lib/pkgconfig"
+    env['PKGCONFIG'] = "env PKG_CONFIG_PATH=/usr/i686-pc-mingw32/sys-root/mingw/lib/pkgconfig:/usr/local/mingw32/lib/pkgconfig pkg-config"
     env['OBJSUFFIX']=".obj"
+    env['SHLIBSUFFIX']=".dll"
+    env['SHLIBPREFIX']=""
+#    env['LIBSUFFIX']=".lib"
     env['PROGSUFFIX'] = ".exe"
     env['CROOT'] = "/home/dov/.wine/drive_c/"
-    env['PREFIX'] = "z:\\usr\\local\\mingw32"
-    env['PKGGTKSOURCEVIEW'] = "gtksourceview-1.0"
+    env['PREFIX'] = "\usr\i686-pc-mingw32\sys-root\mingw"
+    env['DLLWRAP'] = "i686-pc-mingw32-dllwrap"
+    env['DLLTOOL'] = "i686-pc-mingw32-dlltool"
+    env['DLLWRAP_FLAGS'] = "--mno-cygwin --as=${AS} --export-all --driver-name ${CXX} --dll-tool-name ${DLLTOOL} -s"
+    env.Append(CPPFLAGS= ['-mms-bitfields'])
+    env['PKGGTKSOURCEVIEW'] = "gtksourceview-2.0"
     env['GLADESRC'] = "z:\\archive\\svnwork\\glade3"
 
     env.Command("gemtcl.wine.nsi",
@@ -72,12 +82,12 @@ if ARGUMENTS.get('mingw', 0):
                 ["src",
                  "server-examples",
                  "gemtcl.wine.nsi"],
-                ["wine \"${CROOT}\Program Files\NSIS\makensis.exe\" gemtcl.wine.nsi"])
+                ["makensis gemtcl.wine.nsi"])
     res = env.Command("gemtcl.res.o",
                       ["gemtcl.rc",
                        "misc/gemtcl-logo.ico"
                       ],
-                      ["/usr/local/mingw32/bin/mingw32-windres gemtcl.rc gemtcl.res.o"])
+                      ["i686-pc-mingw32-windres gemtcl.rc gemtcl.res.o"])
 
     env.Append(CPPDEFINES=['GTKSOURCEVIEW1'],
                CPPPATH=["/usr/local/mingw32/include"],

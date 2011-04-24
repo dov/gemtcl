@@ -1,5 +1,9 @@
 2011-04-24  Dov Grobgeld  <dov.grobgeld@gmail.com>
 
+        * configure.in: Release windows version 0.1.34
+
+        * Lots of changes to fix windows compilation.
+
         * gem-button-box.gob : Fixed problem with spin-button set.
 
 2009-05-26  Dov Grobgeld  <dov.grobgeld@gmail.com>

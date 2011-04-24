@@ -4,7 +4,7 @@ AM_CONFIG_HEADER(config.h)
 
 PACKAGE=gemtcl
 
-AM_INIT_AUTOMAKE($PACKAGE,"0.1.33")
+AM_INIT_AUTOMAKE($PACKAGE,"0.1.34")
 
 dnl Use libtool to get shared libraries
 AC_PROG_CC

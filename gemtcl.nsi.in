@@ -32,29 +32,29 @@ File AUTHORS
 # create some dirs
 CreateDirectory $INSTDIR\lib
 
-# glade installation
-SetOutPath $INSTDIR\bin
-CreateDirectory $INSTDIR\lib\glade3
-File @GLADESRC@\src\glade-3.exe
-File @GLADESRC@\gladeui\libgladeui-1.dll
-
-CreateDirectory $INSTDIR\lib\glade3\modules
-SetOutPath $INSTDIR\lib\glade3\modules
-File @GLADESRC@\plugins\gtk+\libgladegtk.dll
-
-CreateDirectory $INSTDIR\share
-CreateDirectory $INSTDIR\share\pixmaps
-SetOutPath $INSTDIR\share\pixmaps
-FILE @GLADESRC@\plugins\gtk+\icons\22x22\*.png
-
-CreateDirectory $INSTDIR\share\glade3
-CreateDirectory $INSTDIR\share\glade3\pixmaps
-SetOutPath $INSTDIR\share\glade3\pixmaps
-FILE @GLADESRC@\data\icons\*.png
-
-CreateDirectory $INSTDIR\share\glade3\catalogs
-SetOutPath $INSTDIR\share\glade3\catalogs
-File @GLADESRC@\plugins\gtk+\gtk+.xml
+# # glade installation
+# SetOutPath $INSTDIR\bin
+# CreateDirectory $INSTDIR\lib\glade3
+# File @GLADESRC@\src\glade-3.exe
+# File @GLADESRC@\gladeui\libgladeui-1.dll
+# 
+# CreateDirectory $INSTDIR\lib\glade3\modules
+# SetOutPath $INSTDIR\lib\glade3\modules
+# File @GLADESRC@\plugins\gtk+\libgladegtk.dll
+# 
+# CreateDirectory $INSTDIR\share
+# CreateDirectory $INSTDIR\share\pixmaps
+# SetOutPath $INSTDIR\share\pixmaps
+# FILE @GLADESRC@\plugins\gtk+\icons\22x22\*.png
+# 
+# CreateDirectory $INSTDIR\share\glade3
+# CreateDirectory $INSTDIR\share\glade3\pixmaps
+# SetOutPath $INSTDIR\share\glade3\pixmaps
+# FILE @GLADESRC@\data\icons\*.png
+# 
+# CreateDirectory $INSTDIR\share\glade3\catalogs
+# SetOutPath $INSTDIR\share\glade3\catalogs
+# File @GLADESRC@\plugins\gtk+\gtk+.xml
 
 # Rest of gemtcl
 SetOutPath $INSTDIR\bin
@@ -62,41 +62,47 @@ File src\gemtcl.exe
 File src\gemtcl-remote.exe
 File server-examples\microscope-server.exe
 File server-examples\example-server.exe
-File "@PREFIX@\bin\intl.dll"
-File "@PREFIX@\bin\iconv.dll"
-File "@PREFIX@\bin\pcre-0.dll"
-File "@PREFIX@\bin\libxml2.dll"
-File "@PREFIX@\bin\gnet-2.0.dll"
-File "@PREFIX@\bin\libgnomeprint-2-2-0.dll"
-File "@PREFIX@\bin\libgtksourceview-1.0-0.dll"
+File "@PREFIX@\bin\libintl-8.dll"
+File "\usr\local\mingw32.old\bin\intl.dll"
+File "@PREFIX@\bin\libiconv-2.dll"
+File "@PREFIX@\bin\libpcre-0.dll"
+File "@PREFIX@\bin\libxml2-2.dll"
+File "\usr\local\mingw32\bin\gnet-2.0.dll"
+File "\usr\local\mingw32\bin\libgtksourceview-2.0-0.dll"
+File "\usr\local\mingw32\bin\libcroco-0.6-3.dll"
+File "\usr\local\mingw32\bin\librsvg-2-2.dll"
 File "@PREFIX@\bin\libglade-2.0-0.dll"
 File "@PREFIX@\bin\tcl85.dll"
-File @PREFIX@\runtime\gtk+\bin\gspawn-win32-helper-console.exe
-File @PREFIX@\runtime\gtk+\bin\gspawn-win32-helper.exe
-File @PREFIX@\runtime\gtk+\bin\libgdk-win32*.dll
-File @PREFIX@\runtime\gtk+\bin\libgdk_pixbuf*.dll
-File @PREFIX@\runtime\gtk+\bin\libgtk-win32*.dll
-File @PREFIX@\runtime\gtk+\bin\libgio*.dll
-File @PREFIX@\runtime\gtk+\bin\libcairo*.dll
-File @PREFIX@\runtime\gtk+\bin\zlib*.dll
-File @PREFIX@\runtime\gtk+\bin\libglib*.dll
-File @PREFIX@\runtime\gtk+\bin\libatk*.dll
-File @PREFIX@\runtime\gtk+\bin\libgobject*.dll
-File @PREFIX@\runtime\gtk+\bin\libgmodule*.dll
-File @PREFIX@\runtime\gtk+\bin\libgthread*.dll
-File @PREFIX@\runtime\gtk+\bin\libpango*.dll
-File @PREFIX@\runtime\gtk+\bin\libpng*.dll
-File @PREFIX@\runtime\gtk+\bin\librsvg*.dll
-File @PREFIX@\runtime\gtk+\bin\jpeg62.dll
-File @PREFIX@\runtime\gtk+\bin\libtiff3.dll
-File @PREFIX@\runtime\gtk+\bin\libcroco-0.6-3.dll
-File @PREFIX@\runtime\gtk+\bin\libgsf-1-114.dll
-File @PREFIX@\runtime\gtk+\bin\bzip2.dll
-File @PREFIX@\runtime\gtk+\bin\libfontconfig-1.dll
-File @PREFIX@\runtime\gtk+\bin\xmlparse.dll
-File @PREFIX@\runtime\gtk+\bin\xmltok.dll
-File @PREFIX@\runtime\gtk+\bin\freetype6.dll
-File @PREFIX@\runtime\gtk+\bin\gdk-pixbuf-query-loaders.exe
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgcc_s_sjlj-1.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libstdc++-6.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgdk-win32*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgdk_pixbuf*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgtk-win32*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgio*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libcairo*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libjasper-1.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\zlib*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libglib*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libatk*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgobject*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgmodule*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgthread*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libpango*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libpng*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libtiff*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libjpeg*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libpixman-1-0.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libfontconfig*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\libfreetype*.dll
+File \usr\i686-pc-mingw32\sys-root\mingw\bin\gdk-pixbuf-query-loaders.exe
+
+SetOutPath $INSTDIR\etc
+File /r \usr\i686-pc-mingw32\sys-root\mingw\etc\gtk-2.0
+File /r \usr\i686-pc-mingw32\sys-root\mingw\etc\fonts
+File /r \usr\i686-pc-mingw32\sys-root\mingw\etc\pango
+
+SetOutPath $INSTDIR\etc\gtk-2.0
+File \usr\i686-pc-mingw32\sys-root\mingw\share\themes\MS-Windows\gtk-2.0\gtkrc
 
 CreateDirectory $INSTDIR\examples
 SetOutPath $INSTDIR\examples
@@ -106,6 +112,8 @@ File examples\smiley.svg
 File examples\therm.svg
 File examples\therm50.svg
 File examples\glade-buttons.glade
+File examples\oranges*
+File examples\apples*
 File server-examples\microscope-creatures.ps
 
 CreateDirectory $INSTDIR\doc
@@ -139,10 +147,11 @@ File /r lib\reg
 File /r lib\tcltest
 File /r lib\tzdata
 
-CreateDirectory $INSTDIR\share\gtksourceview-1.0\language-specs
-SetOutPath $INSTDIR
-File /oname=share\gtksourceview-1.0\language-specs\tcl.lang "@PREFIX@\share\gtksourceview-1.0\language-specs\tcl.lang"
-File /r @PREFIX@\runtime\gtk+\etc
+CreateDirectory $INSTDIR\share\gtksourceview-2.0\language-specs
+SetOutPath "$INSTDIR\share\gtksourceview-2.0\language-specs"
+File "\usr\local\mingw32\share\gtksourceview-2.0\language-specs\*"
+SetOutPath "$INSTDIR\share\gtksourceview-2.0\"
+File /r "\usr\local\mingw32\share\gtksourceview-2.0\styles"
 
 CreateDirectory $INSTDIR\mic-example
 SetOutPath $INSTDIR\mic-example
@@ -150,20 +159,50 @@ File /oname=mic.tcl server-examples\mic-win.tcl
 File server-examples\mic.glade
 File server-examples\mic.gtf
 
-SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\loaders
-File @PREFIX@\runtime\gtk+\lib\gtk-2.0\2.10.0\loaders\svg_loader.dll
-;File @PREFIX@\runtime\gtk+\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-png.dll
+# pango
+SetOutPath $INSTDIR\lib
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\pango
+
+# pixbuf etc
+SetOutPath $INSTDIR\lib\gdk-pixbuf-2.0\2.10.0
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-png.dll
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-pnm.dll
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-qtif.dll
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-tga.dll
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-wbmp.dll
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-xbm.dll
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-xpm.dll
+File /r \usr\local\mingw32\lib\gdk-pixbuf-2.0\2.10.0\loaders*
 
 SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\engines
-File @PREFIX@\runtime\gtk+\lib\gtk-2.0\2.10.0\engines\*
-
+File \usr\i686-pc-mingw32\sys-root\mingw\lib\gtk-2.0\2.10.0\engines\*
 SetOutPath $INSTDIR\share\themes 
-File /r @PREFIX@\runtime\gtk+\share\themes\*
+File /r \usr\i686-pc-mingw32\sys-root\mingw\share\themes\*
+
+
+SetOutPath "$INSTDIR\bin"
+FileOpen $0 "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat" w
+#FileWrite $0 'set GDK_PIXBUF_MODULE_FILE="$INSTDIR\lib\gdk-pixbuf-2.0\2.10.0\loaders.cache"'
+#FileWriteByte $0 13
+#FileWriteByte $0 10
+FileWrite $0 '.\gdk-pixbuf-query-loaders.exe > "$INSTDIR\lib\gdk-pixbuf-2.0\2.10.0\loaders.cache"'
+FileWriteByte $0 13
+FileWriteByte $0 10
+FileClose $0
+ReadEnvStr $0 COMSPEC
+nsExec::Exec '"$0" /c "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat"'
+
+#Delete "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat"
 
 # Build the gdk-pixbuf.loaders file automatically
-SetOutPath $INSTDIR
-ExpandEnvStrings $0 %COMSPEC%
-Exec '"$0" /C ""$INSTDIR\bin\gdk-pixbuf-query-loaders" > "$INSTDIR\etc\gtk-2.0\gdk-pixbuf.loaders""'
+#ReadEnvStr $0 COMSPEC
+#nsExec::Exec '"$0" /c "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat"'
+
+
+# Build the gdk-pixbuf.loaders file automatically
+#SetOutPath $INSTDIR
+#ExpandEnvStrings $0 %COMSPEC%
+#Exec '"$0" /C ""$INSTDIR\bin\gdk-pixbuf-query-loaders" > "$INSTDIR\etc\gtk-2.0\gdk-pixbuf.loaders""'
 
 System::Call 'Shell32::SHChangeNotify(i 0x8000000, i 0, i 0, i 0)'
 

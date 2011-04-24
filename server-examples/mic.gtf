@@ -1,0 +1,54 @@
+name => "Microscope"
+use_glade => 1
+glade_filename => "mic.glade"
+buttons=> [
+]
+glade_scripts => [
+  {
+    name => "Up"
+    script => "mic move_to -rel 0 [gemtcl_get dist]
+mic_image
+"
+  }
+  {
+    name => "left"
+    script => "mic move_to -rel -[gemtcl_get dist] 0
+mic_image
+"
+  }
+  {
+    name => "button3"
+    script => "mic move_to -rel 0 -[gemtcl_get dist]
+mic_image
+"
+  }
+  {
+    name => "right"
+    script => "mic move_to -rel [gemtcl_get dist] 0
+mic_image
+"
+  }
+  {
+    name => "snap"
+    script => "mic_image
+"
+  }
+  {
+    name => "scale"
+    script => "mic scale [gemtcl_get scale]
+mic_image
+"
+  }
+  {
+    name => "light"
+    script => "mic light [gemtcl_get light]
+mic_image
+"
+  }
+]
+glade_inputs => [
+  {
+    name => "dist"
+    value => "50"
+  }
+]
