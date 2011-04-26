@@ -125,27 +125,23 @@ File doc\*.html
 CreateDirectory $INSTDIR\lib
 CreateDirectory $INSTDIR\lib\tcl
 SetOutPath $INSTDIR\lib\tcl
-File lib\auto.tcl
-File lib\history.tcl
-File lib\init.tcl
-File lib\package.tcl
-File lib\parray.tcl
-File lib\safe.tcl
-File lib\word.tcl
-File lib\tm.tcl
-File lib\clock.tcl
-File lib\tclIndex
-File /r lib\dde
-File /r lib\encoding
-File /r lib\http
-File /r lib\http1.0
-File /r lib\msgcat
-File /r lib\msgs
-File /r lib\opt
-File /r lib\platform
-File /r lib\reg
-File /r lib\tcltest
-File /r lib\tzdata
+File lib-win32\auto.tcl
+File lib-win32\history.tcl
+File lib-win32\init.tcl
+File lib-win32\package.tcl
+File lib-win32\parray.tcl
+File lib-win32\safe.tcl
+File lib-win32\word.tcl
+File lib-win32\tm.tcl
+File lib-win32\clock.tcl
+File lib-win32\tclIndex
+File /r lib-win32\dde*
+File /r lib-win32\encoding
+File /r lib-win32\http*
+File /r lib-win32\msgs
+File /r lib-win32\opt*
+File /r lib-win32\reg*
+File /r lib-win32\tzdata
 
 CreateDirectory $INSTDIR\share\gtksourceview-2.0\language-specs
 SetOutPath "$INSTDIR\share\gtksourceview-2.0\language-specs"

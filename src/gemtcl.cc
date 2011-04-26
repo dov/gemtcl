@@ -1929,6 +1929,11 @@ void thread_init_tcl()
     tcl_lib.s("/[^\\/]*$","/lib/tcl");
     tcl_lib.s("bin/lib","lib");
     Tcl_Eval(interp, slipprintf("set tcl_library \"%s\"; source $tcl_library/init.tcl", tcl_lib.c_str()).c_str());
+    const char *tcl_eval_result = Tcl_GetStringResult(interp);
+    g_idle_add_full(G_PRIORITY_HIGH_IDLE,
+                    cb_idle_add_eval_end,
+                    g_strdup(tcl_eval_result),
+                    g_free);
 
     Tcl_Eval(interp, "proc dir args { exec cmd /c dir $args }");
 #endif
@@ -2133,7 +2138,7 @@ cb_menu_about(gpointer   callback_data,
                               "%s\n\n"
                               "<span>%s\n%sEmail: <tt>&lt;%s&gt;</tt></span>\n",
                               ("An interactive Tcl-Shell"),
-                              ("Copyright &#x00a9; Dov Grobgeld, 2008\n"),
+                              ("Copyright &#x00a9; Dov Grobgeld, 2011\n"),
                               ("Programming by: Dov Grobgeld\n"),
                               ("dov.grobgeld@gmail.com"));
     gtk_label_set_markup (GTK_LABEL (label), markup);

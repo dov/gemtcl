@@ -17,3 +17,4 @@
 /src/gemtcl
 /src/gemtcl-remote
 /src/xnm/xnm-parser.c
+*.old
