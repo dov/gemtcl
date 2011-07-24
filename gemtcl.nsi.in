@@ -160,7 +160,7 @@ SetOutPath $INSTDIR\lib
 File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\pango
 
 # pixbuf etc
-SetOutPath $INSTDIR\lib\gdk-pixbuf-2.0\2.10.0
+SetOutPath $INSTDIR\lib\gdk-pixbuf-2.0\2.10.0\loaders
 File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-png.dll
 File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-pnm.dll
 File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-qtif.dll
@@ -168,7 +168,9 @@ File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\li
 File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-wbmp.dll
 File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-xbm.dll
 File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-xpm.dll
-File /r \usr\local\mingw32\lib\gdk-pixbuf-2.0\2.10.0\loaders*
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-gdip-jpeg.dll
+File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-gdip-gif.dll
+File /r \usr\local\mingw32\lib\gdk-pixbuf-2.0\2.10.0\loaders\*
 
 SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\engines
 File \usr\i686-pc-mingw32\sys-root\mingw\lib\gtk-2.0\2.10.0\engines\*
@@ -181,18 +183,15 @@ FileOpen $0 "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat" w
 #FileWrite $0 'set GDK_PIXBUF_MODULE_FILE="$INSTDIR\lib\gdk-pixbuf-2.0\2.10.0\loaders.cache"'
 #FileWriteByte $0 13
 #FileWriteByte $0 10
-FileWrite $0 '.\gdk-pixbuf-query-loaders.exe > "$INSTDIR\lib\gdk-pixbuf-2.0\2.10.0\loaders.cache"'
+FileWrite $0 'gdk-pixbuf-query-loaders.exe > "$INSTDIR\lib\gdk-pixbuf-2.0\2.10.0\loaders.cache"'
 FileWriteByte $0 13
 FileWriteByte $0 10
 FileClose $0
 ReadEnvStr $0 COMSPEC
+Delete "$INSTDIR\etc\gtk-2.0\gdk-pixbuf.loaders"
 nsExec::Exec '"$0" /c "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat"'
 
 #Delete "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat"
-
-# Build the gdk-pixbuf.loaders file automatically
-#ReadEnvStr $0 COMSPEC
-#nsExec::Exec '"$0" /c "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat"'
 
 
 # Build the gdk-pixbuf.loaders file automatically

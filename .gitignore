@@ -18,3 +18,8 @@
 /src/gemtcl-remote
 /src/xnm/xnm-parser.c
 *.old
+/COPYING.dos
+/examples/shopping/shopping.glade
+/examples/shopping/shopping.gladep
+/gemtcl.rc
+/gemtcl.wine.nsi
