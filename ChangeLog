@@ -1,3 +1,17 @@
+2012-02-05  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+        * gemtcl.nsi.in : Changed source of tcl lib to system files.
+
+2012-01-03  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+        * gemtcl.nsi.in : Fixed creation of the loaders.cache file that is needed for svg files.
+
+        * gemtcl.cc: Removed gdk_thread_init() from gemtcl as it should not be used on windows (and need not be used on Linux).
+
+2012-01-02  Dov Grobgeld  <dov.grobgeld@gmail.com>
+
+        * SConstruct: Changed mingw environment from i686-pc-mingw32 to i686-w64-mingw32.
+
 2011-07-24  Dov Grobgeld  <dov.grobgeld@gmail.com>
 
         * configure.in: Release windows version 0.1.36

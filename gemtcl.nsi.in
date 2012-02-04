@@ -62,47 +62,47 @@ File src\gemtcl.exe
 File src\gemtcl-remote.exe
 File server-examples\microscope-server.exe
 File server-examples\example-server.exe
-File "@PREFIX@\bin\libintl-8.dll"
-File "\usr\local\mingw32.old\bin\intl.dll"
-File "@PREFIX@\bin\libiconv-2.dll"
-File "@PREFIX@\bin\libpcre-0.dll"
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libintl-8.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\iconv.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libpcre-0.dll
 File "@PREFIX@\bin\libxml2-2.dll"
 File "\usr\local\mingw32\bin\gnet-2.0.dll"
 File "\usr\local\mingw32\bin\libgtksourceview-2.0-0.dll"
 File "\usr\local\mingw32\bin\libcroco-0.6-3.dll"
 File "\usr\local\mingw32\bin\librsvg-2-2.dll"
-File "@PREFIX@\bin\libglade-2.0-0.dll"
-File "@PREFIX@\bin\tcl85.dll"
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgcc_s_sjlj-1.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libstdc++-6.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgdk-win32*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgdk_pixbuf*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgtk-win32*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgio*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libcairo*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libjasper-1.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\zlib*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libglib*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libatk*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgobject*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgmodule*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libgthread*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libpango*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libpng*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libtiff*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libjpeg*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libpixman-1-0.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libfontconfig*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\libfreetype*.dll
-File \usr\i686-pc-mingw32\sys-root\mingw\bin\gdk-pixbuf-query-loaders.exe
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libglade-2.0-0.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\tcl85.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libgcc_s_sjlj-1.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libstdc++-6.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libgdk-win32*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libgdk_pixbuf*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libgtk-win32*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libgio*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libcairo*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libjasper-1.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\zlib*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libglib*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libatk*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libgobject*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libgmodule*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libgthread*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libpango*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libpng*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libtiff*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libjpeg*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libpixman-1-0.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libfontconfig*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libfreetype*.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\libffi-6.dll
+File \usr\i686-w64-mingw32\sys-root\mingw\bin\gdk-pixbuf-query-loaders.exe
 
 SetOutPath $INSTDIR\etc
-File /r \usr\i686-pc-mingw32\sys-root\mingw\etc\gtk-2.0
-File /r \usr\i686-pc-mingw32\sys-root\mingw\etc\fonts
-File /r \usr\i686-pc-mingw32\sys-root\mingw\etc\pango
+File /r \usr\i686-w64-mingw32\sys-root\mingw\etc\gtk-2.0
+File /r \usr\i686-w64-mingw32\sys-root\mingw\etc\fonts
+File /r \usr\i686-w64-mingw32\sys-root\mingw\etc\pango
 
 SetOutPath $INSTDIR\etc\gtk-2.0
-File \usr\i686-pc-mingw32\sys-root\mingw\share\themes\MS-Windows\gtk-2.0\gtkrc
+File \usr\i686-w64-mingw32\sys-root\mingw\share\themes\MS-Windows\gtk-2.0\gtkrc
 
 CreateDirectory $INSTDIR\examples
 SetOutPath $INSTDIR\examples
@@ -125,23 +125,24 @@ File doc\*.html
 CreateDirectory $INSTDIR\lib
 CreateDirectory $INSTDIR\lib\tcl
 SetOutPath $INSTDIR\lib\tcl
-File lib-win32\auto.tcl
-File lib-win32\history.tcl
-File lib-win32\init.tcl
-File lib-win32\package.tcl
-File lib-win32\parray.tcl
-File lib-win32\safe.tcl
-File lib-win32\word.tcl
-File lib-win32\tm.tcl
-File lib-win32\clock.tcl
-File lib-win32\tclIndex
-File /r lib-win32\dde*
-File /r lib-win32\encoding
-File /r lib-win32\http*
-File /r lib-win32\msgs
-File /r lib-win32\opt*
-File /r lib-win32\reg*
-File /r lib-win32\tzdata
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\auto.tcl
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\history.tcl
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\init.tcl
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\package.tcl
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\parray.tcl
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\safe.tcl
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\word.tcl
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\tm.tcl
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\clock.tcl
+File \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\tclIndex
+File /r \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\dde*
+File /r \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\encoding
+File /r \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\http*
+File /r \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\msgs
+File /r \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\opt*
+File /r \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\reg*
+File /r \usr\i686-w64-mingw32\sys-root\mingw\share\tcl8.5\tzdata
+File lib-win32\xmlrpc.tcl
 
 CreateDirectory $INSTDIR\share\gtksourceview-2.0\language-specs
 SetOutPath "$INSTDIR\share\gtksourceview-2.0\language-specs"
@@ -157,25 +158,25 @@ File server-examples\mic.gtf
 
 # pango
 SetOutPath $INSTDIR\lib
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\pango
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\pango
 
 # pixbuf etc
 SetOutPath $INSTDIR\lib\gdk-pixbuf-2.0\2.10.0\loaders
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-png.dll
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-pnm.dll
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-qtif.dll
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-tga.dll
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-wbmp.dll
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-xbm.dll
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-xpm.dll
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-gdip-jpeg.dll
-File /r \usr\i686-pc-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-gdip-gif.dll
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-png.dll
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-pnm.dll
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-qtif.dll
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-tga.dll
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-wbmp.dll
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-xbm.dll
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-xpm.dll
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-gdip-jpeg.dll
+File /r \usr\i686-w64-mingw32\sys-root\mingw\lib\gdk-pixbuf-2.0\2.10.0\loaders\libpixbufloader-gdip-gif.dll
 File /r \usr\local\mingw32\lib\gdk-pixbuf-2.0\2.10.0\loaders\*
 
 SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\engines
-File \usr\i686-pc-mingw32\sys-root\mingw\lib\gtk-2.0\2.10.0\engines\*
+File \usr\i686-w64-mingw32\sys-root\mingw\lib\gtk-2.0\2.10.0\engines\*
 SetOutPath $INSTDIR\share\themes 
-File /r \usr\i686-pc-mingw32\sys-root\mingw\share\themes\*
+File /r \usr\i686-w64-mingw32\sys-root\mingw\share\themes\*
 
 
 SetOutPath "$INSTDIR\bin"
@@ -187,9 +188,9 @@ FileWrite $0 'gdk-pixbuf-query-loaders.exe > "$INSTDIR\lib\gdk-pixbuf-2.0\2.10.0
 FileWriteByte $0 13
 FileWriteByte $0 10
 FileClose $0
-ReadEnvStr $0 COMSPEC
+ExpandEnvStrings $0 %COMSPEC%
 Delete "$INSTDIR\etc\gtk-2.0\gdk-pixbuf.loaders"
-nsExec::Exec '"$0" /c "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat"'
+Exec '"$0" /c "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat"'
 
 #Delete "$INSTDIR\bin\gdk-pixbuf-query-loaders.bat"
 

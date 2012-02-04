@@ -38,6 +38,8 @@ puts \"rad3=[gemtcl_get radiobutton3]\"
     script => "puts \"Be happy! Move longer!\"
 gemtcl_set distance [expr [gemtcl_get distance]+1]
 gemtcl_set toggle [expr ![gemtcl_get toggle]]
+
+# Change paths to full paths to get this to work.
 if {[gemtcl_get toggle]} { 
   gemtcl_set image_therm  therm50.svg
 } else {

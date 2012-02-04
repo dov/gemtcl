@@ -2659,10 +2659,8 @@ int main(int argc, char **argv)
 
     Tcl_FindExecutable(argv[0]);
     g_thread_init(NULL);
-    gdk_threads_init();
     gtk_init(&argc, &argv);
     glade_init();
-    gdk_threads_enter ();
 
     settings_file = slip(g_get_home_dir())+"/"+".gemtcl.rc";
     load_settings();
@@ -2724,34 +2722,6 @@ int main(int argc, char **argv)
     // set_tcl_library_from_executable();
 
     gtk_main();
-    gdk_threads_leave();
     
     exit(0);
 }
-
-#ifdef _MSC_VER
-int __stdcall WinMain(      
-
-    HINSTANCE hInstance,
-    HINSTANCE hPrevInstance,
-    LPSTR lpCmdLine,
-    int nCmdShow
-)
-{
-    char **argv;
-    GError *error = NULL;
-    int argc = 0;
-    sups lp = (sups) "gemtcl " + lpCmdLine;
-
-    g_shell_parse_argv(lp.c_str(),
-                       &argc,
-                       &argv,
-                       &error);
-
-    int ret = main(argc, argv);
-
-    g_strfreev(argv);
-
-    return ret;
-}
-#endif
