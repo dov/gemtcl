@@ -1,7 +1,12 @@
 Import('env')
 
+env.Command('xnm-parser.c',
+            ['xnm-parser.y'],
+            'bison -o xnm-parser.c xnm-parser.y',
+              chdir=1)
+
 env.Library("xnm",
-            ["xnm-parser.y",
+            ["xnm-parser.c",
              "xnm-retrieve.c",
              "xnm-struct.c"])
 

@@ -1007,7 +1007,7 @@ static int tcl_puts(ClientData clientData,
                     g_strdup(tcl_puts_string.c_str()),
                     g_free);
 
-    sprintf(interp->result,"%s","");
+    Tcl_SetResult(interp, "", NULL);
     return TCL_OK;
 }
 
@@ -1022,7 +1022,7 @@ static int tcl_load_gtf(ClientData clientData,
                     g_strdup(argv[argp]),
                     g_free);
 
-    sprintf(interp->result,"%s","");
+    Tcl_SetResult(interp, "", nullptr);
 
     return TCL_OK;
 }
@@ -1330,7 +1330,7 @@ static int tcl_gemtcl_xnm(ClientData clientData,
         return TCL_OK;
     }
     if (do_parse) {
-        Tcl_SetResult(interp, g_strdup_printf("xnm%d", (int)val), tcl_str_free);
+        Tcl_SetResult(interp, g_strdup_printf("xnm%d", (size_t)val), tcl_str_free);
         return TCL_OK;
     }
     
@@ -1545,7 +1545,7 @@ static int tcl_gemtcl_xmlrpc_client(ClientData clientData,
                           tcl_str_free);
             return TCL_ERROR;
         }
-        Tcl_SetResult(interp, g_strdup_printf("GemXml%d", (int)client),
+        Tcl_SetResult(interp, g_strdup_printf("GemXml%d", (size_t)client),
                       tcl_str_free);
         return TCL_OK;
     }

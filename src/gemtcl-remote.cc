@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     GNetXmlRpcClient *client;
     int argp = 1;
     char *params;
-    char *gem_host = "localhost";
+    const char *gem_host = "localhost";
     int gem_port = 8822;
     bool do_debug = false;
     gchar *reply;

@@ -42,7 +42,7 @@ env.Command("logo_64_inline.i",
 
 env.Program("gemtcl",
             src,
-            LINKFLAGS=['-mwindows'] + env['LINKFLAGS'],
+            LINKFLAGS=env['LINKFLAGS'],
             LIBPATH=['xnm','plis'] + env['LIBPATH'],
             LIBS=['xnm','plis'] + env['LIBS'],
             CPPPATH = ['xnm','plis'] + env['CPPPATH'])
